@@ -1,8 +1,7 @@
 # include <iostream>
-# include "SolidInc.h"
-#include"tet.h"
-#include<array>
-#include<vector>
+# include "FEMSolid.h"
+# include "tet.h"
+
 using namespace Eigen;
 struct tetH
 {
@@ -17,9 +16,9 @@ int main(int argc, char** argv)
 	std::cout << mat << std::endl;
 	tetgenio ioOp = tetgenio();
 	ioOp.initialize();
+	//=========================================== test tetGen
+	
 	tetGen t1;
-	t1.out.trifacelist;
-	std::cout << t1.in.numberoftetrahedra << std::endl;
 	std::vector<tetH> tetlst;
 	int  t;
 	std::cout<<t1.out.numberoftetrahedra<<std::endl;
@@ -40,19 +39,20 @@ int main(int argc, char** argv)
 		tetlst.push_back(temp);
 	}
 
-	//for (int i = 0; i < tetlst.size(); i++)
-	//{
-	//	std::cout << "the" << i << "th tetrahedral"<<std::endl;
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		for (int k = 0; k < 3; k++)
-	//		{
-	//			std::cout << tetlst[i].positions[j][k];
-	//			std::cout << "||";
-	//		}
-	//		std::cout << std::endl;
-	//	}
-	//	std::cout << std::endl;
-	//}
+	for (int i = 0; i < tetlst.size(); i++)
+	{
+		std::cout << "the" << i << "th tetrahedral"<<std::endl;
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				std::cout << tetlst[i].positions[j][k];
+				std::cout << "||";
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
 	std::cin >> t;
+	//=================================================================
 }

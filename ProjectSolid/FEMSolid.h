@@ -5,3 +5,10 @@
 # include <cuda.h>
 # include <Eigen\Sparse>
 # include <tetgen.h>
+# include <array>
+# include <vector>
+
+class FEMSolid
+{
+
+};

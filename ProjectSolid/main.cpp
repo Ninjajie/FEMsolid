@@ -1,5 +1,5 @@
 # include <iostream>
-# include "SolidInc.h"
+# include "FEMSolid.h"
 
 int main(int argc, char** argv)
 {

@@ -17,13 +17,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SolidInc.h">
-      <Filter>include</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <CudaCompile Include="kernel\Solver.cu">
       <Filter>kernel</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FEMSolid.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

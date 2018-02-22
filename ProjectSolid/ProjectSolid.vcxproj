@@ -17,7 +17,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SolidInc.h" />
+    <ClInclude Include="FEMSolid.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C7BA6C1-34C4-42B9-B899-8393E84B4D28}</ProjectGuid>

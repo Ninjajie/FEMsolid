@@ -41,13 +41,13 @@ int main(int argc, char** argv)
 
 	for (int i = 0; i < tetlst.size(); i++)
 	{
-		std::cout << "the" << i << "th tetrahedral"<<std::endl;
+		std::cout << " the " << i << "th tetrahedral"<<std::endl;
 		for (int j = 0; j < 4; j++)
 		{
 			for (int k = 0; k < 3; k++)
 			{
 				std::cout << tetlst[i].positions[j][k];
-				std::cout << "||";
+				std::cout << " || ";
 			}
 			std::cout << std::endl;
 		}

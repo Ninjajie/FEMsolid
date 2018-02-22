@@ -15,8 +15,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="tet.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="tet.h" />
     <ClInclude Include="SolidInc.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

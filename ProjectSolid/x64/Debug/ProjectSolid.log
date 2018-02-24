@@ -1,0 +1,11 @@
+﻿  tet.cpp
+  main.cpp
+  Generating Code...
+tetd.lib(tetgen.obj) : warning LNK4099: PDB 'tet.pdb' was not found with 'tetd.lib(tetgen.obj)' or at 'C:\Courses\CIS563\FEMsolid\x64\Debug\tet.pdb'; linking object as if no debug info
+tetd.lib(predicates.obj) : warning LNK4099: PDB 'tet.pdb' was not found with 'tetd.lib(predicates.obj)' or at 'C:\Courses\CIS563\FEMsolid\x64\Debug\tet.pdb'; linking object as if no debug info
+  ProjectSolid.vcxproj -> C:\Courses\CIS563\FEMsolid\x64\Debug\ProjectSolid.exe
+  ProjectSolid.vcxproj -> C:\Courses\CIS563\FEMsolid\x64\Debug\ProjectSolid.pdb (Full PDB)
+  copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin\cudart*.dll" "C:\Courses\CIS563\FEMsolid\x64\Debug\"
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin\cudart32_90.dll
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin\cudart64_90.dll
+          2 file(s) copied.

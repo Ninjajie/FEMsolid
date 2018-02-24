@@ -3,10 +3,21 @@
 # include "tet.h"
 
 using namespace Eigen;
-struct tetCorners
+/*struct tetCorners
 {
 	std::array<Vector3d, 4> positions;
+};*/
 
+struct tetTetrahedras
+{
+	std::vector<Vector4i> indexes;
+};
+
+struct tetCorners
+{
+	std::vector<Vector3d> positions;
+	std::vector<Vector3d> velocities;
+	std::vector<Vector3d> elasticForces;
 };
 
 int main(int argc, char** argv)
@@ -19,43 +30,30 @@ int main(int argc, char** argv)
 	//=========================================== test tetGen
 	
 	tetGen t1;
-	std::vector<tetH> tetlst;
+	tetTetrahedras tetlist;
+	tetCorners cornerlist;
 	int t;
 	std::cout << t1.out.numberoftetrahedra << std::endl;
 	std::cout << t1.out.numberofcorners << std::endl;
 
 	for (int i = 0; i < t1.out.numberoftetrahedra; i++)
 	{
-		tetCorners temp;
-		
-		for (int j = 0; j < 4; j++)
-		{
-
-			for (int k = 0; k < 3; k++)
-			{
-				temp.positions[j][k]=t1.out.pointlist[3 * (t1.out.tetrahedronlist[4 * i + j]) + k];
-			}
-
-		}
-		tetlist.push_back(temp);
+		tetlist.indexes.push_back(Vector4i(t1.out.tetrahedronlist[4 * i],
+										   t1.out.tetrahedronlist[4 * i + 1],
+										   t1.out.tetrahedronlist[4 * i + 2],
+										   t1.out.tetrahedronlist[4 * i + 3]));
 	}
-	/*
-	for (int i = 0; i < tetlist.size(); i++)
+
+	for (int i = 0; i < t1.out.numberofcorners; i++)
 	{
-		std::cout << " the " << i << "th tetrahedral"<<std::endl;
-		for (int j = 0; j < 4; j++)
-		{
-			for (int k = 0; k < 3; k++)
-			{
-				std::cout << tetlist[i].positions[j][k];
-				std::cout << " || ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
+		Vector3d zero = Vector3d();
+		cornerlist.positions.push_back(Vector3d(t1.out.pointlist[3 * i],
+												t1.out.pointlist[3 * i + 1],
+												t1.out.pointlist[3 * i + 2]));
+		cornerlist.velocities.push_back(zero);
+		cornerlist.elasticForces.push_back(zero);
 	}
-	std::cin >> t;
-	*/
+
 	//=================================================================
 	//Main Algorithm
 	std::vector<Matrix3d> Dm;
@@ -63,14 +61,14 @@ int main(int argc, char** argv)
 	std::vector<double> We;
 
 	//For all tet, precompute the volume
-	for (int i = 0; i < tetlist.size(); i++)
+	for (int i = 0; i < tetlist.indexes.size(); i++)
 	{
 		Matrix3d dmt;
-		Vector3d& lastCorner = tetlist[i].positions[3];
+		Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[i][3]];
 
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			Vector3d& corner = tetlist[i].positions[cornerInd];
+			Vector3d& corner = cornerlist.positions[tetlist.indexes[i][cornerInd]];
 
 			dmt.row(cornerInd) << corner - lastCorner;
 		}
@@ -89,13 +87,13 @@ int main(int argc, char** argv)
 	std::vector<Matrix3d> F;
 	//std::vector<Vector3d> H;
 	//std::vector<Matrix3d> P;
-	for (int tetInd = 0; tetInd < tetlist.size(); tetInd++)
+	for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
 	{
 		Matrix3d dst;
-		Vector3d& lastCorner = currentTetList[tetInd].positions[3];
+		Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[tetInd][3]];
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			Vector3d& corner = currentTetList[tetInd].positions[cornerInd];
+			Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
 
 			dst.row(cornerInd) << corner - lastCorner;
 		}
@@ -107,17 +105,14 @@ int main(int argc, char** argv)
 
 		// populate H
 		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
-		tetCorners forcesFromCurrTet;
 
-		Vector3d f3;
-		f3 << 0, 0, 0;
+		Vector3d f3 = Vector3d();
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			forcesFromCurrTet.positions[cornerInd] = H.col(cornerInd);
+			cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
 			f3 -= H.col(cornerInd);
 		}
 		
-		forcesFromCurrTet.positions[3] = f3;	
-		tetForces.push_back(forcesFromCurrTet);
+		cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
 	}
 }

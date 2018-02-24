@@ -105,8 +105,18 @@ int main(int argc, char** argv)
 		Matrix3d p;
 
 		// populate H
-		Matrix3d f = - We[tetInd] * p * Bm[tetInd].transpose();
+		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
 		tetCorners forcesFromCurrTet;
 
+		Vector3d f3;
+		f3 << 0, 0, 0;
+		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		{
+			forcesFromCurrTet.positions[cornerInd] = H.col(cornerInd);
+			f3 -= H.col(cornerInd);
+		}
+		
+		forcesFromCurrTet.positions[3] = f3;	
+		tetForces.push_back(forcesFromCurrTet);
 	}
 }

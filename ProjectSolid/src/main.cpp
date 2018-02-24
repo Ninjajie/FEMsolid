@@ -80,59 +80,59 @@ int main(int argc, char** argv)
 	std::vector<double> We;
 
 	//For all tet, precompute the volume
-	//for (int i = 0; i < tetlist.indexes.size(); i++)
-	//{
-	//	Matrix3d dmt;
-	//	Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[i][3]];
+	for (int i = 0; i < tetlist.indexes.size(); i++)
+	{
+		Matrix3d dmt;
+		Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[i][3]];
 
-	//	for (int cornerInd = 0; cornerInd < 3; cornerInd++)
-	//	{
-	//		Vector3d& corner = cornerlist.positions[tetlist.indexes[i][cornerInd]];
+		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		{
+			Vector3d& corner = cornerlist.positions[tetlist.indexes[i][cornerInd]];
 
-	//		dmt.row(cornerInd) << corner - lastCorner;
-	//	}
-	//	Dm.push_back(dmt);
-	//	Bm.push_back(dmt.inverse());
-	//	We.push_back(dmt.determinant());
-	//}
-	//// Compute the elastic forces
-	//// current positions
-	//// todo: need to populate it
-	//std::vector<tetCorners> currentTetList;
-	//
-	//// force on each corner
-	//std::vector<tetCorners> tetForces;
-	////stress tensor
-	//std::vector<Matrix3d> F;
-	////std::vector<Vector3d> H;
-	////std::vector<Matrix3d> P;
-	//for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
-	//{
-	//	Matrix3d dst;
-	//	Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[tetInd][3]];
-	//	for (int cornerInd = 0; cornerInd < 3; cornerInd++)
-	//	{
-	//		Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
+			dmt.row(cornerInd) << corner - lastCorner;
+		}
+		Dm.push_back(dmt);
+		Bm.push_back(dmt.inverse());
+		We.push_back(dmt.determinant());
+	}
+	// Compute the elastic forces
+	// current positions
+	// todo: need to populate it
+	std::vector<tetCorners> currentTetList;
+	
+	// force on each corner
+	std::vector<tetCorners> tetForces;
+	//stress tensor
+	std::vector<Matrix3d> F;
+	//std::vector<Vector3d> H;
+	//std::vector<Matrix3d> P;
+	for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
+	{
+		Matrix3d dst;
+		Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[tetInd][3]];
+		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		{
+			Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
 
-	//		dst.row(cornerInd) << corner - lastCorner;
-	//	}
-	//	dst *= Bm[tetInd];
-	//	F.push_back(dst);
+			dst.row(cornerInd) << corner - lastCorner;
+		}
+		dst *= Bm[tetInd];
+		F.push_back(dst);
 
-	//	// todo: compute P
-	//	//JacobiSVD<Matrix3d> svd(dst, ComputeFullU | ComputeFullV);
-	//	Matrix3d p;
+		// todo: compute P
+		//JacobiSVD<Matrix3d> svd(dst, ComputeFullU | ComputeFullV);
+		Matrix3d p;
 
-	//	// populate H
-	//	Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
+		// populate H
+		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
 
-	//	Vector3d f3 = Vector3d();
-	//	for (int cornerInd = 0; cornerInd < 3; cornerInd++)
-	//	{
-	//		cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
-	//		f3 -= H.col(cornerInd);
-	//	}
-	//	
-	//	cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
-	//}
+		Vector3d f3 = Vector3d();
+		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		{
+			cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
+			f3 -= H.col(cornerInd);
+		}
+		
+		cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
+	}
 }

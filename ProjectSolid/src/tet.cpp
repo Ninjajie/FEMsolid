@@ -122,6 +122,6 @@ tetGen::tetGen()
 	in.facetmarkerlist[4] = 0;
 	in.facetmarkerlist[5] = 0;
 
-	tetrahedralize("pq1.414a0.01", &in, &out);
+	tetrahedralize("pq1.414a0.1", &in, &out);
 	
 }

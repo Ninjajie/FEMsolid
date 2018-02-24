@@ -4,6 +4,8 @@
 # include <cublas.h>
 # include <cuda.h>
 # include <Eigen\Sparse>
+# include <Eigen\SVD>
+# include <Eigen\Dense>
 # include <tetgen.h>
 # include <array>
 # include <vector>

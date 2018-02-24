@@ -2,6 +2,8 @@
 # include "FEMSolid.h"
 # include "tet.h"
 
+#define E 0.1
+#define NU 0.4999
 using namespace Eigen;
 /*struct tetCorners
 {
@@ -84,9 +86,8 @@ int main(int argc, char** argv)
 	// force on each corner
 	std::vector<tetCorners> tetForces;
 	//stress tensor
-	std::vector<Matrix3d> F;
-	//std::vector<Vector3d> H;
-	//std::vector<Matrix3d> P;
+	//std::vector<Matrix3d> F;
+
 	for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
 	{
 		Matrix3d dst;
@@ -98,11 +99,21 @@ int main(int argc, char** argv)
 			dst.row(cornerInd) << corner - lastCorner;
 		}
 		dst *= Bm[tetInd];
-		F.push_back(dst);
-
 		// todo: compute P
 		Matrix3d p;
+		JacobiSVD<Matrix3d> svd(dst, ComputeFullU | ComputeFullV);
+		Matrix3d U = svd.matrixU();
+		Matrix3d V = svd.matrixV();
+		Vector3d Sigma = svd.singularValues();
+		double mu = E / (2 * (1 + NU));
+		double lambda = (E * NU) / ((1 + NU) * (1 - 2 * NU));
+		Matrix3d R = U*V;
+		p = 2 * mu * (dst - R) + lambda * (R.transpose() * dst - MatrixXd::Identity(3, 3)).trace() * R;
+		// todo: what if rotation matrices are reflections
+		if (dst.determinant() < 0)
+		{
 
+		}
 		// populate H
 		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
 

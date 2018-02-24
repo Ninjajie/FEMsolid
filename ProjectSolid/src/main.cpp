@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	}
 	
 	// For each frame, calculate new position
-	int frameNumber = 120;
+	int frameNumber = 30;
 	double deltaTime = 0.016;
 	for (int i = 0; i < frameNumber; ++i)
 	{
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 
 			//std::cout << cornerlist.velocities[j] << std::endl;
 			cornerlist.positions[j] += cornerlist.velocities[j] * deltaTime;
-			//std::cout << cornerlist.positions[j] << std::endl;
+			std::cout << cornerlist.positions[j] << std::endl;
 			cornerlist.elasticForces[j] = Vector3d(0, 0, 0);
 		}
 
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 		// Boundary situation
 		for (int j = 0; j < cornerlist.cornerNumber; ++j)
 		{
-			cornerlist.velocities[j] += cornerlist.elasticForces[j] * deltaTime;
+			cornerlist.velocities[j] += cornerlist.elasticForces[j] * deltaTime * 0.001;
 			if (cornerlist.positions[j][1] < -1.)
 			{
 				cornerlist.positions[j][1] = -1.;

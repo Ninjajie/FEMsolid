@@ -10,11 +10,13 @@ using namespace Eigen;
 
 struct tetTetrahedras
 {
+	int tetNumber;
 	std::vector<Vector4i> indexes;
 };
 
 struct tetCorners
 {
+	int cornerNumber;
 	std::vector<Vector3d> positions;
 	std::vector<Vector3d> velocities;
 	std::vector<Vector3d> elasticForces;
@@ -30,13 +32,14 @@ int main(int argc, char** argv)
 	//=========================================== test tetGen
 	
 	tetGen t1;
+	int t;
+
 	tetTetrahedras tetlist;
 	tetCorners cornerlist;
-	int t;
-	std::cout << t1.out.numberoftetrahedra << std::endl;
-	std::cout << t1.out.numberofcorners << std::endl;
+	tetlist.tetNumber = t1.out.numberoftetrahedra;
+	cornerlist.cornerNumber = t1.out.numberofpoints;
 
-	for (int i = 0; i < t1.out.numberoftetrahedra; i++)
+	for (int i = 0; i < tetlist.tetNumber; i++)
 	{
 		tetlist.indexes.push_back(Vector4i(t1.out.tetrahedronlist[4 * i],
 										   t1.out.tetrahedronlist[4 * i + 1],
@@ -44,14 +47,13 @@ int main(int argc, char** argv)
 										   t1.out.tetrahedronlist[4 * i + 3]));
 	}
 
-	for (int i = 0; i < t1.out.numberofcorners; i++)
+	for (int i = 0; i < cornerlist.cornerNumber; i++)
 	{
-		Vector3d zero = Vector3d();
 		cornerlist.positions.push_back(Vector3d(t1.out.pointlist[3 * i],
 												t1.out.pointlist[3 * i + 1],
 												t1.out.pointlist[3 * i + 2]));
-		cornerlist.velocities.push_back(zero);
-		cornerlist.elasticForces.push_back(zero);
+		cornerlist.velocities.push_back(Vector3d());
+		cornerlist.elasticForces.push_back(Vector3d());
 	}
 
 	//=================================================================
@@ -76,43 +78,59 @@ int main(int argc, char** argv)
 		Bm.push_back(dmt.inverse());
 		We.push_back(dmt.determinant());
 	}
-	// Compute the elastic forces
-	// current positions
-	// todo: need to populate it
-	std::vector<tetCorners> currentTetList;
 	
-	// force on each corner
-	std::vector<tetCorners> tetForces;
-	//stress tensor
-	std::vector<Matrix3d> F;
-	//std::vector<Vector3d> H;
-	//std::vector<Matrix3d> P;
-	for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
+	// For each frame, calculate new position
+	int frameNumber = 1000;
+	double deltaTime = 0.016;
+	for (int i = 0; i < frameNumber; ++i)
 	{
-		Matrix3d dst;
-		Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[tetInd][3]];
-		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		// Renew velocity and position
+		for (int i = 0; i < cornerlist.cornerNumber; i++)
 		{
-			Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
-
-			dst.row(cornerInd) << corner - lastCorner;
+			cornerlist.velocities[i][1] -= 9.8 * deltaTime;
+			cornerlist.positions[i] += cornerlist.velocities[i] * deltaTime;
+			cornerlist.elasticForces[i] = Vector3d();
 		}
-		dst *= Bm[tetInd];
-		F.push_back(dst);
 
-		// todo: compute P
-		Matrix3d p;
-
-		// populate H
-		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
-
-		Vector3d f3 = Vector3d();
-		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+		// Calculate elastic force
+		for (int tetInd = 0; tetInd < t1.out.numberoftetrahedra; tetInd++)
 		{
-			cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
-			f3 -= H.col(cornerInd);
+			Matrix3d dst;
+			Vector3d& lastCorner = cornerlist.positions[tetlist.indexes[tetInd][3]];
+			for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+			{
+				Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
+
+				dst.row(cornerInd) << corner - lastCorner;
+			}
+			dst *= Bm[tetInd];
+			Matrix3d F;
+
+			// todo: compute P
+			Matrix3d p;
+
+			// populate H
+			Matrix3d H = -We[tetInd] * p * Bm[tetInd].transpose();
+
+			Vector3d f3 = Vector3d();
+			for (int cornerInd = 0; cornerInd < 3; cornerInd++)
+			{
+				cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
+				f3 -= H.col(cornerInd);
+			}
+
+			cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
 		}
-		
-		cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
+
+		// Boundary situation
+		for (int i = 0; i < cornerlist.cornerNumber; i++)
+		{
+			cornerlist.velocities[i] += cornerlist.elasticForces[i];
+			if (cornerlist.positions[i][1] < -1.)
+			{
+				cornerlist.positions[i][1] = -1.;
+				cornerlist.velocities[i][1] = 0.8 * fabs(cornerlist.velocities[i][1]);
+			}
+		}
 	}
 }

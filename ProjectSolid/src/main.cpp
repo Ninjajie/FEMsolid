@@ -116,6 +116,7 @@ int main(int argc, char** argv)
 			dst.row(cornerInd) << corner - lastCorner;
 		}
 		dst *= Bm[tetInd];
+
 		// todo: compute P
 		Matrix3d p;
 		JacobiSVD<Matrix3d> svd(dst, ComputeFullU | ComputeFullV);
@@ -131,6 +132,7 @@ int main(int argc, char** argv)
 		{
 
 		}
+
 		// populate H
 		Matrix3d H = - We[tetInd] * p * Bm[tetInd].transpose();
 

@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	//=========================================== test tetGen
 	
 	tetGen t1;
-	std::vector<tetH> tetlst;
+	std::vector<tetCorners> tetlist;
 	int t;
 	std::cout << t1.out.numberoftetrahedra << std::endl;
 	std::cout << t1.out.numberofcorners << std::endl;
@@ -103,6 +103,7 @@ int main(int argc, char** argv)
 		F.push_back(dst);
 
 		// todo: compute P
+		JacobiSVD<Matrix3d> svd(dst, ComputeFullU | ComputeFullV);
 		Matrix3d p;
 
 		// populate H

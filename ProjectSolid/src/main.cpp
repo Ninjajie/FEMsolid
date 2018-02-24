@@ -85,11 +85,11 @@ int main(int argc, char** argv)
 	for (int i = 0; i < frameNumber; ++i)
 	{
 		// Renew velocity and position
-		for (int i = 0; i < cornerlist.cornerNumber; i++)
+		for (int j = 0; j < cornerlist.cornerNumber; i++)
 		{
-			cornerlist.velocities[i][1] -= 9.8 * deltaTime;
-			cornerlist.positions[i] += cornerlist.velocities[i] * deltaTime;
-			cornerlist.elasticForces[i] = Vector3d();
+			cornerlist.velocities[j][1] -= 9.8 * deltaTime;
+			cornerlist.positions[j] += cornerlist.velocities[i] * deltaTime;
+			cornerlist.elasticForces[j] = Vector3d();
 		}
 
 		// Calculate elastic force
@@ -100,7 +100,6 @@ int main(int argc, char** argv)
 			for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 			{
 				Vector3d& corner = cornerlist.positions[tetlist.indexes[tetInd][cornerInd]];
-
 				dst.row(cornerInd) << corner - lastCorner;
 			}
 			dst *= Bm[tetInd];
@@ -115,21 +114,20 @@ int main(int argc, char** argv)
 			Vector3d f3 = Vector3d();
 			for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 			{
-				cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] = H.col(cornerInd);
+				cornerlist.elasticForces[tetlist.indexes[tetInd][cornerInd]] += H.col(cornerInd);
 				f3 -= H.col(cornerInd);
 			}
-
-			cornerlist.elasticForces[tetlist.indexes[tetInd][3]] = f3;
+			cornerlist.elasticForces[tetlist.indexes[tetInd][3]] += f3;
 		}
 
 		// Boundary situation
-		for (int i = 0; i < cornerlist.cornerNumber; i++)
+		for (int j = 0; j < cornerlist.cornerNumber; i++)
 		{
-			cornerlist.velocities[i] += cornerlist.elasticForces[i];
-			if (cornerlist.positions[i][1] < -1.)
+			cornerlist.velocities[j] += cornerlist.elasticForces[i];
+			if (cornerlist.positions[j][1] < -1.)
 			{
-				cornerlist.positions[i][1] = -1.;
-				cornerlist.velocities[i][1] = 0.8 * fabs(cornerlist.velocities[i][1]);
+				cornerlist.positions[j][1] = -1.;
+				cornerlist.velocities[j][1] = 0.8 * fabs(cornerlist.velocities[i][1]);
 			}
 		}
 	}

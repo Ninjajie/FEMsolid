@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FEMSolid.h" />
+    <ClInclude Include="include\poly.hpp" />
     <ClInclude Include="include\tet.h" />
   </ItemGroup>
   <ItemGroup>

@@ -32,6 +32,7 @@ int main(int argc, char** argv)
 	//=========================================== test tetGen
 	
 	tetGen t1;
+
 	tetTetrahedras tetlist;
 	tetCorners cornerlist;
 	int t;
@@ -46,7 +47,7 @@ int main(int argc, char** argv)
 										   t1.out.tetrahedronlist[4 * i + 3]));
 	}
 
-	for (int i = 0; i < t1.out.numberofcorners; i++)
+	for (int i = 0; i < t1.out.numberofpoints; i++)
 	{
 		Vector3d zero = Vector3d();
 		cornerlist.positions.push_back(Vector3d(t1.out.pointlist[3 * i],
@@ -55,6 +56,24 @@ int main(int argc, char** argv)
 		cornerlist.velocities.push_back(zero);
 		cornerlist.elasticForces.push_back(zero);
 	}
+
+	//=======================================test output===========
+
+	std::fstream file;
+	file.open("test.poly", std::ios::out);
+	objwriter::ObjWriter w(file);
+	w.point();
+	for (int i = 0; i < cornerlist.positions.size(); i++)
+	{
+		w.vertex(float(cornerlist.positions[i][0]), float(cornerlist.positions[i][1]), float(cornerlist.positions[i][2]), i);
+	}
+	w.polys();
+	for (int i = 0; i < tetlist.indexes.size();i++)
+	{
+		w.tet(tetlist.indexes[i][0], tetlist.indexes[i][1], tetlist.indexes[i][2], tetlist.indexes[i][3], i);
+	}
+	w.end();
+	//=============================================================
 
 	//=================================================================
 	//Main Algorithm
@@ -85,8 +104,6 @@ int main(int argc, char** argv)
 	
 	// force on each corner
 	std::vector<tetCorners> tetForces;
-	//stress tensor
-	//std::vector<Matrix3d> F;
 
 	for (int tetInd = 0; tetInd < tetlist.indexes.size(); tetInd++)
 	{

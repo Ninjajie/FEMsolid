@@ -1,7 +1,11 @@
-#include "tet.h"
+# include "FEMSolid.h"
 
-tetGen::tetGen()
+void tetrahedralizeCube(tetgenio& out)
 {
+	tetgenio in;
+	tetgenio::facet *f;
+	tetgenio::polygon *p;
+
 	in.firstnumber = 1;
 
 	in.numberofpoints = 8;
@@ -123,5 +127,4 @@ tetGen::tetGen()
 	in.facetmarkerlist[5] = 0;
 
 	tetrahedralize("pq1.414a0.1", &in, &out);
-	
 }

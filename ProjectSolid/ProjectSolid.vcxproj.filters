@@ -20,9 +20,6 @@
     <ClInclude Include="include\FEMSolid.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\tet.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="include\poly.hpp">
       <Filter>include</Filter>
     </ClInclude>
@@ -31,7 +28,13 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\tet.cpp">
+    <ClCompile Include="src\FEMSolid.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tetrahedralizeCube.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tetrahedralizeObj.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

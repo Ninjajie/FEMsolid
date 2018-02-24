@@ -14,12 +14,12 @@
     <CudaCompile Include="kernel\Solver.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="tet.cpp" />
+    <ClInclude Include="include\FEMSolid.h" />
+    <ClInclude Include="include\tet.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tet.h" />
-    <ClInclude Include="FEMSolid.h" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\tet.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C7BA6C1-34C4-42B9-B899-8393E84B4D28}</ProjectGuid>

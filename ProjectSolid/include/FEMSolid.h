@@ -8,7 +8,7 @@
 # include <array>
 # include <vector>
 
-class FEMSolid
+class FEMSolidSolver
 {
 
 };

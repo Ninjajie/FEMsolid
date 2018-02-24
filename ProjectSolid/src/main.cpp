@@ -20,9 +20,9 @@ int main(int argc, char** argv)
 	
 	tetGen t1;
 	std::vector<tetH> tetlst;
-	int  t;
-	std::cout<<t1.out.numberoftetrahedra<<std::endl;
-	std::cout << t1.out.numberofcorners<<std::endl;
+	int t;
+	std::cout << t1.out.numberoftetrahedra << std::endl;
+	std::cout << t1.out.numberofcorners << std::endl;
 	for (int i = 0; i < t1.out.numberoftetrahedra; i++)
 	{
 		tetH temp;

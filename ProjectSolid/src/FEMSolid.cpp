@@ -4,7 +4,11 @@ void tetrahedralizeCube(tetgenio& out);
 
 FEMSolidSolver::FEMSolidSolver(double timeStep, double framePeriod)
 	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
-{}
+{
+# ifdef OMParallelize
+	omp_set_num_threads(8);
+# endif
+}
 
 long long FEMSolidSolver::getCurrentIterations()
 {
@@ -47,6 +51,12 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(double timeStep, double framePeri
 
 void FEMSolidSolver::preCompute()
 {
+	Dm = std::vector<Eigen::Matrix3d>(tetraIndices.size());
+	Bm = std::vector<Eigen::Matrix3d>(tetraIndices.size());
+	We = std::vector<double>(tetraIndices.size());
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
 	for (int i = 0; i < tetraIndices.size(); i++)
 	{
 		Eigen::Matrix3d dmt;
@@ -62,9 +72,9 @@ void FEMSolidSolver::preCompute()
 			r1[0], r1[1], r1[2],
 			r2[0], r2[1], r2[2];
 
-		Dm.push_back(dmt);
-		Bm.push_back(dmt.inverse());
-		We.push_back(dmt.determinant());
+		Dm.at(i) = dmt;
+		Bm.at(i) = dmt.inverse();
+		We.at(i) = dmt.determinant();
 	}
 }
 
@@ -104,7 +114,10 @@ void FEMSolidSolver::stepForward()
 	this->computeBodyForce();
 	this->computeElasticForce();
 
-	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int pointInd = 0; pointInd < positions.size(); ++pointInd)
 	{
 		Eigen::Vector3d totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * totalForce / masses[pointInd];
@@ -120,6 +133,9 @@ void FEMSolidSolver::stepForward()
 
 void FEMSolidSolver::computeElasticForce()
 {
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
 	for (int tetInd = 0; tetInd < tetraIndices.size(); tetInd++)
 	{
 		Eigen::Matrix3d dst;

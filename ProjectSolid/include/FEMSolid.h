@@ -3,6 +3,9 @@
 
 # define TETLIBRARY
 
+/// 如果不想要并行化代码就把这行注释掉
+# define OMParallelize
+
 /*Put every last 3rd party we need in this header*/
 # include <iostream>
 # include <cublas.h>
@@ -12,6 +15,7 @@
 # include <array>
 # include <vector>
 # include <poly.hpp>
+# include <omp.h>
 
 class FEMSolidSolver
 {

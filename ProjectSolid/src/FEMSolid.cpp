@@ -99,16 +99,15 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 
 	double mu = E / (2 * (1 + NU));
 	Eigen::Matrix3d P = mu * (dst - Eigen::Matrix3d::Identity(3, 3));
-	//std::cout << P << std::endl;
 	return P;
 }
 
 void FEMSolidSolver::computeBodyForce()
 {
-	/*for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
 	{
-		bodyForces.push_back(Eigen::Vector3d(0.0, masses.at(pointInd) * GravityAcc, 0.0));
-	}*/
+		bodyForces[pointInd] += Eigen::Vector3d(0.0, -masses.at(pointInd) * GravityAcc, 0.0);
+	}
 }
 
 void FEMSolidSolver::stepForward()

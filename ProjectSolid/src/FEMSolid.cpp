@@ -76,7 +76,7 @@ void FEMSolidSolver::preCompute()
 
 Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 {
-	/*Eigen::JacobiSVD<Eigen::Matrix3d> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
 	Eigen::Matrix3d U = svd.matrixU();
 	Eigen::Matrix3d V = svd.matrixV();
 	Eigen::Vector3d Sigma = svd.singularValues();
@@ -105,14 +105,14 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 
 	Eigen::Matrix3d P = firstComponent + secondComponent;
 
-	return P;*/
+	return P;
 
-	const double E = 0.1;
+	/*const double E = 0.1;
 	const double NU = 0.4999;
 
 	double mu = E / (2 * (1 + NU));
 	Eigen::Matrix3d P = 100.0 * (dst - Eigen::Matrix3d::Identity(3, 3));
-	return P;
+	return P;*/
 }
 
 void FEMSolidSolver::computeBodyForce()

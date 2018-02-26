@@ -50,6 +50,8 @@ private:
 
 	void computeBodyForce();
 
+	void save2File(std::string path);
+
 public:
 	//以后把这个弄个虚函数就好了
 	virtual Eigen::Matrix3d computeP(Eigen::Matrix3d dst);

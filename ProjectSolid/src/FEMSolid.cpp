@@ -97,10 +97,10 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 
 void FEMSolidSolver::computeBodyForce()
 {
-	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+	/*for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
 	{
 		bodyForces.push_back(Eigen::Vector3d(0.0, masses.at(pointInd) * GravityAcc, 0.0));
-	}
+	}*/
 }
 
 void FEMSolidSolver::stepForward()
@@ -129,9 +129,33 @@ void FEMSolidSolver::stepForward()
 
 	if (this->steps % this->stepsPerFrame == 0)
 	{
-		//Save file
+		std::string path = "./resultcache/polyCube";
+		path += std::to_string(steps / stepsPerFrame);
+		path += ".poly";
+		this->save2File(path);
 	}
 	this->steps++;
+}
+
+void FEMSolidSolver::save2File(std::string path)
+{
+	std::fstream file;
+	file.open(path, std::ios::out);
+	objwriter::ObjWriter w(file);
+	w.point();
+	for (int i = 0; i < positions.size(); i++)
+	{
+		w.vertex(static_cast<float>(positions[i][0]),
+				 static_cast<float>(positions[i][1]),
+				 static_cast<float>(positions[i][2]), i);
+	}
+	w.polys();
+	for (int i = 0; i < tetraIndices.size(); i++)
+	{
+		w.tet(tetraIndices[i][0], tetraIndices[i][1], tetraIndices[i][2], tetraIndices[i][3], i);
+	}
+	w.end();
+	file.close();
 }
 
 void FEMSolidSolver::computeElasticForce()

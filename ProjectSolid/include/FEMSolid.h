@@ -4,7 +4,7 @@
 # define TETLIBRARY
 
 /// 如果不想要并行化代码就把这行注释掉
-# define OMParallelize
+//# define OMParallelize
 
 # ifdef OMParallelize
 # define TOTALThreads 8

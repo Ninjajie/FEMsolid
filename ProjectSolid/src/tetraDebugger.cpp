@@ -1,6 +1,6 @@
 # include "FEMSolid.h"
 
-const double size = 1.0;
+const double size = 0.3;
 
 FEMSolidSolver* FEMSolidSolver::createForDebugging(double timeStep, double framePeriod)
 {

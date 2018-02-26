@@ -90,9 +90,6 @@ mat3 FEMSolidSolver::computeP(mat3 dst)
 		V.col(2) *= -1.0;
 	}
 
-	const fReal E = 1000;
-	const fReal NU = 0.3;
-
 	fReal mu = E / (2 * (1 + NU));
 	fReal lambda = (E * NU) / ((1 + NU) * (1 - 2 * NU));
 
@@ -106,13 +103,6 @@ mat3 FEMSolidSolver::computeP(mat3 dst)
 	mat3 P = firstComponent + secondComponent;
 
 	return P;
-
-	/*const fReal E = 0.1;
-	const fReal NU = 0.4999;
-
-	fReal mu = E / (2 * (1 + NU));
-	mat3 P = 100.0 * (dst - mat3::Identity(3, 3));
-	return P;*/
 }
 
 void FEMSolidSolver::computeBodyForce()

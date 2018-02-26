@@ -37,6 +37,10 @@ typedef Eigen::Matrix3d mat3;
 typedef double fReal;
 # endif
 
+const fReal E = 1000;
+const fReal NU = 0.3;
+const fReal Density = 6.8;
+
 class FEMSolidSolver
 {
 private:

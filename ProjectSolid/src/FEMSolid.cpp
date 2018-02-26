@@ -74,7 +74,7 @@ void FEMSolidSolver::preCompute()
 
 		Dm.at(i) = dmt;
 		Bm.at(i) = dmt.inverse();
-		We.at(i) = 1.0 / 6.0 * dmt.determinant();
+		We.at(i) = 1.0 / 6.0 * std::abs(dmt.determinant());
 	}
 }
 

@@ -62,6 +62,8 @@ public:
 
 	static FEMSolidSolver* createFromCube(double timeStep, double framePeriod);
 
+	static FEMSolidSolver* createForDebugging(double timeStep, double framePeriod);
+
 	FEMSolidSolver(double timeStep, double framePeriod);
 
 	long long getCurrentIterations();

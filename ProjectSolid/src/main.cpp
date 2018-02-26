@@ -5,7 +5,7 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
-	FEMSolidSolver* solver = FEMSolidSolver::createFromCube(0.0001f, 0.01f);
+	FEMSolidSolver* solver = FEMSolidSolver::createForDebugging(0.0001f, 0.01f);
 
 	for (long long i = 0; i != 10000; ++i)
 	{

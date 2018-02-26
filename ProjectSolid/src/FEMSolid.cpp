@@ -152,7 +152,7 @@ void FEMSolidSolver::save2File(std::string path)
 	w.polys();
 	for (int i = 0; i < tetraIndices.size(); i++)
 	{
-		w.tet(tetraIndices[i][0], tetraIndices[i][1], tetraIndices[i][2], tetraIndices[i][3], i);
+		w.tet(tetraIndices[i][0] + 1, tetraIndices[i][1] + 1, tetraIndices[i][2] + 1, tetraIndices[i][3] + 1, i);
 	}
 	w.end();
 	file.close();
@@ -189,13 +189,13 @@ void FEMSolidSolver::computeElasticForce()
 		}
 		
 		// populate H
-		Eigen::Matrix3d H = -We[tetInd] * P * Bm[tetInd].transpose();
+		Eigen::Matrix3d H = -We[tetInd] * P * (Bm[tetInd].transpose());
 
 		/// 注意！原版本存在初始化问题！
 		Eigen::Vector3d f3 = Eigen::Vector3d(0.0, 0.0, 0.0);
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			elasticForces[tetraIndices[tetInd][cornerInd]] = H.col(cornerInd);
+			elasticForces[tetraIndices[tetInd][cornerInd]] += H.col(cornerInd);
 			f3 -= H.col(cornerInd);
 		}
 		/// 等等……啥？应该是+=

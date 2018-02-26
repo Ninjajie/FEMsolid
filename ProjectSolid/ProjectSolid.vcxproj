@@ -20,6 +20,7 @@
   <ItemGroup>
     <ClCompile Include="src\FEMSolid.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\tetraDebugger.cpp" />
     <ClCompile Include="src\tetrahedralizeCube.cpp" />
     <ClCompile Include="src\tetrahedralizeObj.cpp" />
   </ItemGroup>

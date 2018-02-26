@@ -68,13 +68,13 @@ void FEMSolidSolver::preCompute()
 
 		/// 注意！原版本存在 << 操作符问题！
 		dmt << 
-			r0[0], r0[1], r0[2],
-			r1[0], r1[1], r1[2],
-			r2[0], r2[1], r2[2];
+			r0[0], r1[0], r2[0],
+			r0[1], r1[1], r2[1],
+			r0[2], r1[2], r2[2];
 
 		Dm.at(i) = dmt;
 		Bm.at(i) = dmt.inverse();
-		We.at(i) = dmt.determinant();
+		We.at(i) = 1.0 / 6.0 * dmt.determinant();
 	}
 }
 
@@ -174,9 +174,9 @@ void FEMSolidSolver::computeElasticForce()
 
 		/// 注意！原版本存在 << 操作符问题！
 		dst <<
-			r0[0], r0[1], r0[2],
-			r1[0], r1[1], r1[2],
-			r2[0], r2[1], r2[2];
+			r0[0], r1[0], r2[0],
+			r0[1], r1[1], r2[1],
+			r0[2], r1[2], r2[2];
 
 		dst *= Bm[tetInd];
 

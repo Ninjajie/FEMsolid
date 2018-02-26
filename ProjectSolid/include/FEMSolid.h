@@ -10,7 +10,7 @@
 # define TOTALThreads 8
 # endif
 
-# define GravityAcc 0.0
+# define GravityAcc 9.8
 
 /*Put every last 3rd party we need in this header*/
 # include <iostream>

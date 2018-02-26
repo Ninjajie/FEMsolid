@@ -10,7 +10,7 @@
 # define TOTALThreads 8
 # endif
 
-# define GravityAcc 9.8
+# define GravityAcc 0.0
 
 /*Put every last 3rd party we need in this header*/
 # include <iostream>
@@ -23,26 +23,40 @@
 # include <poly.hpp>
 # include <omp.h>
 
+# define DOUBLE_Float
+
+# ifdef SINGLE_Float
+typedef Eigen::Vector3f vec3;
+typedef Eigen::Matrix3f mat3;
+typedef float fReal;
+# endif
+
+# ifdef DOUBLE_Float
+typedef Eigen::Vector3d vec3;
+typedef Eigen::Matrix3d mat3;
+typedef double fReal;
+# endif
+
 class FEMSolidSolver
 {
 private:
-	double timeStep;
-	double framePeriod;
+	fReal timeStep;
+	fReal framePeriod;
 
 	long long steps;
 	long long stepsPerFrame;
 
 	std::vector<Eigen::Vector4i> tetraIndices;
 
-	std::vector<Eigen::Vector3d> positions;
-	std::vector<Eigen::Vector3d> velocities;
-	std::vector<Eigen::Vector3d> elasticForces;
-	std::vector<Eigen::Vector3d> bodyForces;
-	std::vector<double> masses;
+	std::vector<vec3> positions;
+	std::vector<vec3> velocities;
+	std::vector<vec3> elasticForces;
+	std::vector<vec3> bodyForces;
+	std::vector<fReal> masses;
 
-	std::vector<Eigen::Matrix3d> Dm;
-	std::vector<Eigen::Matrix3d> Bm;
-	std::vector<double> We;
+	std::vector<mat3> Dm;
+	std::vector<mat3> Bm;
+	std::vector<fReal> We;
 
 	void preCompute();
 
@@ -54,17 +68,17 @@ private:
 
 public:
 	//以后把这个弄个虚函数就好了
-	virtual Eigen::Matrix3d computeP(Eigen::Matrix3d dst);
+	virtual mat3 computeP(mat3 dst);
 
 	void stepForward();
 
-	static FEMSolidSolver* createFromObj(const std::string& filename, double timeStep, double framePeriod);
+	static FEMSolidSolver* createFromObj(const std::string& filename, fReal timeStep, fReal framePeriod);
 
-	static FEMSolidSolver* createFromCube(double timeStep, double framePeriod);
+	static FEMSolidSolver* createFromCube(fReal timeStep, fReal framePeriod);
 
-	static FEMSolidSolver* createForDebugging(double timeStep, double framePeriod);
+	static FEMSolidSolver* createForDebugging(fReal timeStep, fReal framePeriod);
 
-	FEMSolidSolver(double timeStep, double framePeriod);
+	FEMSolidSolver(fReal timeStep, fReal framePeriod);
 
 	long long getCurrentIterations();
 };

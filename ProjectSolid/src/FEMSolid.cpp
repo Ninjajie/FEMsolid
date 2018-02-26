@@ -2,7 +2,7 @@
 
 void tetrahedralizeCube(tetgenio& out);
 
-FEMSolidSolver::FEMSolidSolver(double timeStep, double framePeriod)
+FEMSolidSolver::FEMSolidSolver(fReal timeStep, fReal framePeriod)
 	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
 {
 # ifdef OMParallelize
@@ -15,7 +15,7 @@ long long FEMSolidSolver::getCurrentIterations()
 	return this->steps;
 }
 
-FEMSolidSolver* FEMSolidSolver::createFromCube(double timeStep, double framePeriod)
+FEMSolidSolver* FEMSolidSolver::createFromCube(fReal timeStep, fReal framePeriod)
 {
 	tetgenio cube;
 	tetrahedralizeCube(cube);
@@ -32,8 +32,8 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(double timeStep, double framePeri
 
 	for (int i = 0; i < cube.numberofpoints; i++)
 	{
-		Eigen::Vector3d zeroVec = Eigen::Vector3d(0.0, 0.0, 0.0);
-		solver->positions.push_back(Eigen::Vector3d(cube.pointlist[3 * i + 0],
+		vec3 zeroVec = vec3(0.0, 0.0, 0.0);
+		solver->positions.push_back(vec3(cube.pointlist[3 * i + 0],
 													cube.pointlist[3 * i + 1],
 													cube.pointlist[3 * i + 2]));
 		solver->velocities.push_back(zeroVec);
@@ -51,20 +51,20 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(double timeStep, double framePeri
 
 void FEMSolidSolver::preCompute()
 {
-	Dm = std::vector<Eigen::Matrix3d>(tetraIndices.size());
-	Bm = std::vector<Eigen::Matrix3d>(tetraIndices.size());
-	We = std::vector<double>(tetraIndices.size());
+	Dm = std::vector<mat3>(tetraIndices.size());
+	Bm = std::vector<mat3>(tetraIndices.size());
+	We = std::vector<fReal>(tetraIndices.size());
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
 	for (int i = 0; i < tetraIndices.size(); i++)
 	{
-		Eigen::Matrix3d dmt;
-		Eigen::Vector3d& lastCorner = positions[tetraIndices[i][3]];
+		mat3 dmt;
+		vec3& lastCorner = positions[tetraIndices[i][3]];
 
 		for (int cornerInd = 0; cornerInd < 3; ++cornerInd)
 		{
-			Eigen::Vector3d& corner = positions[tetraIndices[i][cornerInd]];
+			vec3 corner = positions[tetraIndices[i][cornerInd]];
 			dmt.col(cornerInd) << corner[0] - lastCorner[0], corner[1] - lastCorner[1], corner[2] - lastCorner[2];
 		}
 
@@ -74,12 +74,12 @@ void FEMSolidSolver::preCompute()
 	}
 }
 
-Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
+mat3 FEMSolidSolver::computeP(mat3 dst)
 {
-	Eigen::JacobiSVD<Eigen::Matrix3d> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
-	Eigen::Matrix3d U = svd.matrixU();
-	Eigen::Matrix3d V = svd.matrixV();
-	Eigen::Vector3d Sigma = svd.singularValues();
+	Eigen::JacobiSVD<mat3> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	mat3 U = svd.matrixU();
+	mat3 V = svd.matrixV();
+	//mat3 Sigma = svd.singularValues();
 
 	if (U.determinant() < 0)
 	{
@@ -90,28 +90,28 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 		V.col(2) *= -1.0;
 	}
 
-	const double E = 0.1;
-	const double NU = 0.4999;
+	const fReal E = 1000;
+	const fReal NU = 0.3;
 
-	double mu = E / (2 * (1 + NU));
-	double lambda = (E * NU) / ((1 + NU) * (1 - 2 * NU));
+	fReal mu = E / (2 * (1 + NU));
+	fReal lambda = (E * NU) / ((1 + NU) * (1 - 2 * NU));
 
-	Eigen::Matrix3d R = U*(V.transpose());
-	Eigen::Matrix3d firstComponent = 2 * mu * (dst - R);
+	mat3 R = U*(V.transpose());
+	mat3 firstComponent = 2 * mu * (dst - R);
 
-	Eigen::Matrix3d I = Eigen::MatrixXd::Identity(3, 3);
-	Eigen::Matrix3d strainMeasurement = R * dst - I;
-	Eigen::Matrix3d secondComponent = (lambda * (strainMeasurement.trace())) * R;
+	mat3 I = mat3::Identity(3, 3);
+	mat3 strainMeasurement = R * dst - I;
+	mat3 secondComponent = (lambda * (strainMeasurement.trace())) * R;
 
-	Eigen::Matrix3d P = firstComponent + secondComponent;
+	mat3 P = firstComponent + secondComponent;
 
 	return P;
 
-	/*const double E = 0.1;
-	const double NU = 0.4999;
+	/*const fReal E = 0.1;
+	const fReal NU = 0.4999;
 
-	double mu = E / (2 * (1 + NU));
-	Eigen::Matrix3d P = 100.0 * (dst - Eigen::Matrix3d::Identity(3, 3));
+	fReal mu = E / (2 * (1 + NU));
+	mat3 P = 100.0 * (dst - mat3::Identity(3, 3));
 	return P;*/
 }
 
@@ -119,13 +119,13 @@ void FEMSolidSolver::computeBodyForce()
 {
 	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
 	{
-		bodyForces[pointInd] += Eigen::Vector3d(0.0, -masses.at(pointInd) * GravityAcc, 0.0);
+		bodyForces[pointInd] += vec3(0.0, -masses.at(pointInd) * GravityAcc, 0.0);
 	}
 }
 
 void FEMSolidSolver::stepForward()
 {
-	Eigen::Vector3d zeroVec = Eigen::Vector3d(0.0, 0.0, 0.0);
+	vec3 zeroVec = vec3(0.0, 0.0, 0.0);
 	bodyForces.clear();
 	elasticForces.clear();
 	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
@@ -142,7 +142,7 @@ void FEMSolidSolver::stepForward()
 # endif
 	for (int pointInd = 0; pointInd < positions.size(); ++pointInd)
 	{
-		Eigen::Vector3d totalForce = bodyForces[pointInd] + elasticForces[pointInd];
+		vec3 totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
 		positions[pointInd] += this->timeStep * velocities[pointInd];
 
@@ -171,9 +171,9 @@ void FEMSolidSolver::save2File(std::string path)
 	w.point();
 	for (int i = 0; i < positions.size(); i++)
 	{
-		w.vertex(static_cast<float>(positions[i][0]),
-				 static_cast<float>(positions[i][1]),
-				 static_cast<float>(positions[i][2]), i);
+		w.vertex(static_cast<fReal>(positions[i][0]),
+				 static_cast<fReal>(positions[i][1]),
+				 static_cast<fReal>(positions[i][2]), i);
 	}
 	w.polys();
 	for (int i = 0; i < tetraIndices.size(); i++)
@@ -191,18 +191,18 @@ void FEMSolidSolver::computeElasticForce()
 # endif
 	for (int tetInd = 0; tetInd < tetraIndices.size(); tetInd++)
 	{
-		Eigen::Matrix3d dst;
-		Eigen::Vector3d& lastCorner = positions[tetraIndices[tetInd][3]];
+		mat3 dst;
+		vec3& lastCorner = positions[tetraIndices[tetInd][3]];
 
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			Eigen::Vector3d& corner = positions[tetraIndices[tetInd][cornerInd]];
+			vec3& corner = positions[tetraIndices[tetInd][cornerInd]];
 			dst.col(cornerInd) << corner[0] - lastCorner[0], corner[1] - lastCorner[1], corner[2] - lastCorner[2];
 		}
 
 		dst *= Bm[tetInd];
 		
-		Eigen::Matrix3d P = this->computeP(dst);
+		mat3 P = this->computeP(dst);
 
 		// todo: what if rotation matrices are reflections
 		if (dst.determinant() < 0)
@@ -211,10 +211,10 @@ void FEMSolidSolver::computeElasticForce()
 		}
 		
 		// populate H
-		Eigen::Matrix3d H = -We[tetInd] * P * (Bm[tetInd].transpose());
+		mat3 H = -We[tetInd] * P * (Bm[tetInd].transpose());
 
 		/// 注意！原版本存在初始化问题！
-		Eigen::Vector3d f3 = Eigen::Vector3d(0.0, 0.0, 0.0);
+		vec3 f3 = vec3(0.0, 0.0, 0.0);
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
 			elasticForces[tetraIndices[tetInd][cornerInd]] += H.col(cornerInd);

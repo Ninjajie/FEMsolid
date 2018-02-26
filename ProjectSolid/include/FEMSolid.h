@@ -6,6 +6,12 @@
 /// 如果不想要并行化代码就把这行注释掉
 # define OMParallelize
 
+# ifdef OMParallelize
+# define TOTALThreads 8
+# endif
+
+# define GravityAcc 9.8
+
 /*Put every last 3rd party we need in this header*/
 # include <iostream>
 # include <cublas.h>

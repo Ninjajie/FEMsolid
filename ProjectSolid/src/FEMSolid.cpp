@@ -6,7 +6,7 @@ FEMSolidSolver::FEMSolidSolver(double timeStep, double framePeriod)
 	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
 {
 # ifdef OMParallelize
-	omp_set_num_threads(8);
+	omp_set_num_threads(TOTALThreads);
 # endif
 }
 
@@ -97,7 +97,10 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 
 void FEMSolidSolver::computeBodyForce()
 {
-	
+	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+	{
+		bodyForces.push_back(Eigen::Vector3d(0.0, masses.at(pointInd) * GravityAcc, 0.0));
+	}
 }
 
 void FEMSolidSolver::stepForward()

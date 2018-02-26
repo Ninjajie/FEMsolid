@@ -80,7 +80,7 @@ void FEMSolidSolver::preCompute()
 
 Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 {
-	Eigen::JacobiSVD<Eigen::Matrix3d> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	/*Eigen::JacobiSVD<Eigen::Matrix3d> svd(dst, Eigen::ComputeFullU | Eigen::ComputeFullV);
 	Eigen::Matrix3d U = svd.matrixU();
 	Eigen::Matrix3d V = svd.matrixV();
 	Eigen::Vector3d Sigma = svd.singularValues();
@@ -92,6 +92,14 @@ Eigen::Matrix3d FEMSolidSolver::computeP(Eigen::Matrix3d dst)
 	double lambda = (E * NU) / ((1 + NU) * (1 - 2 * NU));
 	Eigen::Matrix3d R = U*V;
 	Eigen::Matrix3d P = 2 * mu * (dst - R) + lambda * (R.transpose() * dst - Eigen::MatrixXd::Identity(3, 3)).trace() * R;
+	return P;*/
+
+	const double E = 0.1;
+	const double NU = 0.4999;
+
+	double mu = E / (2 * (1 + NU));
+	Eigen::Matrix3d P = mu * (dst - Eigen::Matrix3d::Identity(3, 3));
+	//std::cout << P << std::endl;
 	return P;
 }
 

@@ -32,11 +32,11 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(double timeStep, double framePeri
 
 	for (int i = 0; i < cube.numberofpoints; i++)
 	{
-		Eigen::Vector3d zero = Eigen::Vector3d();
+		Eigen::Vector3d zeroVec = Eigen::Vector3d(0.0, 0.0, 0.0);
 		solver->positions.push_back(Eigen::Vector3d(cube.pointlist[3 * i],
 													cube.pointlist[3 * i + 1],
 													cube.pointlist[3 * i + 2]));
-		solver->velocities.push_back(zero);
+		solver->velocities.push_back(zeroVec);
 
 		//TODO: 质量怎么办？
 		solver->masses.push_back(1.0);
@@ -130,7 +130,7 @@ void FEMSolidSolver::stepForward()
 	for (int pointInd = 0; pointInd < positions.size(); ++pointInd)
 	{
 		Eigen::Vector3d totalForce = bodyForces[pointInd] + elasticForces[pointInd];
-		velocities[pointInd] += this->timeStep * totalForce / masses[pointInd];
+		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
 		positions[pointInd] += this->timeStep * velocities[pointInd];
 	}
 
@@ -184,9 +184,7 @@ void FEMSolidSolver::computeElasticForce()
 			r0[0], r1[0], r2[0],
 			r0[1], r1[1], r2[1],
 			r0[2], r1[2], r2[2];
-
-		dst *= Bm[tetInd];
-
+		
 		Eigen::Matrix3d P = this->computeP(dst);
 
 		// todo: what if rotation matrices are reflections

@@ -24,8 +24,8 @@ FEMSolidSolver* FEMSolidSolver::createForDebugging(double timeStep, double frame
 
 	for (int i = 0; i < 8; i++)
 	{
-		Eigen::Vector3d zero = Eigen::Vector3d();
-		solver->velocities.push_back(zero);
+		Eigen::Vector3d zeroVec = Eigen::Vector3d(0.0, 0.0, 0.0);
+		solver->velocities.push_back(zeroVec);
 		//TODO: 质量怎么办？
 		solver->masses.push_back(1.0);
 	}

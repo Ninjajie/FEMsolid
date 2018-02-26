@@ -50,6 +50,10 @@ void FEMSolidSolver::preCompute()
 	Bm = std::vector<mat3>(tetraIndices.size());
 	We = std::vector<fReal>(tetraIndices.size());
 	masses = std::vector<fReal>(positions.size());
+	for (int i = 0; i < positions.size(); ++i)
+	{
+		masses.at(i) = 0.0;
+	}
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
@@ -68,7 +72,11 @@ void FEMSolidSolver::preCompute()
 		Bm.at(i) = dmt.inverse();
 		fReal volume = 1.0 / 6.0 * std::abs(dmt.determinant());
 		We.at(i) = volume;
-		masses.at(i) += volume * Density;
+		fReal tetMass = volume * Density;
+		for (int vert = 0; vert != 4; ++vert)
+		{
+			masses.at(tetraIndices[i][vert]) += 0.25 * tetMass;
+		}
 	}
 }
 

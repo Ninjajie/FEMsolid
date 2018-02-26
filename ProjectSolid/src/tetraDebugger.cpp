@@ -26,8 +26,6 @@ FEMSolidSolver* FEMSolidSolver::createForDebugging(fReal timeStep, fReal framePe
 	{
 		vec3 zeroVec = vec3(0.0, 0.0, 0.0);
 		solver->velocities.push_back(zeroVec);
-		//TODO: 质量怎么办？
-		solver->masses.push_back(1.0);
 	}
 
 	solver->preCompute();

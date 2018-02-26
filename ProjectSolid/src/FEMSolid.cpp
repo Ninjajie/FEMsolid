@@ -37,11 +37,6 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(fReal timeStep, fReal framePeriod
 													cube.pointlist[3 * i + 1],
 													cube.pointlist[3 * i + 2]));
 		solver->velocities.push_back(zeroVec);
-
-		//TODO: 质量怎么办？
-		solver->masses.push_back(1.0);
-		//解的时候再把力填进去更好
-		//solver->forces.push_back(zero);
 	}
 
 	solver->preCompute();
@@ -54,6 +49,7 @@ void FEMSolidSolver::preCompute()
 	Dm = std::vector<mat3>(tetraIndices.size());
 	Bm = std::vector<mat3>(tetraIndices.size());
 	We = std::vector<fReal>(tetraIndices.size());
+	masses = std::vector<fReal>(positions.size());
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
@@ -70,7 +66,9 @@ void FEMSolidSolver::preCompute()
 
 		Dm.at(i) = dmt;
 		Bm.at(i) = dmt.inverse();
-		We.at(i) = 1.0 / 6.0 * std::abs(dmt.determinant());
+		fReal volume = 1.0 / 6.0 * std::abs(dmt.determinant());
+		We.at(i) = volume;
+		masses.at(i) += volume * Density;
 	}
 }
 

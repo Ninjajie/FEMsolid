@@ -4,7 +4,7 @@
 # define TETLIBRARY
 
 /// 如果不想要并行化代码就把这行注释掉
-//# define OMParallelize
+# define OMParallelize
 
 # ifdef OMParallelize
 # define TOTALThreads 8
@@ -37,9 +37,10 @@ typedef Eigen::Matrix3d mat3;
 typedef double fReal;
 # endif
 
-const fReal E = 8000;
+const fReal E = 2000;
 const fReal NU = 0.3;
 const fReal Density = 6.8;
+const vec3 zeroVec = vec3(0.0, 0.0, 0.0);
 
 class FEMSolidSolver
 {
@@ -49,26 +50,38 @@ private:
 
 	long long steps;
 	long long stepsPerFrame;
+	long long frames;
 
-	std::vector<Eigen::Vector4i> tetraIndices;
+	Eigen::Vector4i* tetraIndices;
+	mat3* Dm;
+	mat3* Bm;
+	fReal* We;
+	size_t numOfTets;
 
-	std::vector<vec3> positions;
-	std::vector<vec3> velocities;
-	std::vector<vec3> elasticForces;
-	std::vector<vec3> bodyForces;
-	std::vector<fReal> masses;
+	vec3* positions;
+	vec3* velocities;
+	vec3* elasticForces;
+	vec3* bodyForces;
+	fReal* masses;
+	size_t numOfVerts;
 
-	std::vector<mat3> Dm;
-	std::vector<mat3> Bm;
-	std::vector<fReal> We;
+	void preAllocate(int numOfTets, int numOfVerts);
 
 	void preCompute();
+
+	void preFill(tetgenio& mesh);
+
+	void setInitial();
 
 	void computeElasticForce();
 
 	void computeBodyForce();
 
+	void solveForBoundary();
+
 	void save2File(std::string path);
+
+	FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod);
 
 public:
 	//以后把这个弄个虚函数就好了
@@ -82,9 +95,9 @@ public:
 
 	static FEMSolidSolver* createForDebugging(fReal timeStep, fReal framePeriod);
 
-	FEMSolidSolver(fReal timeStep, fReal framePeriod);
-
 	long long getCurrentIterations();
+
+	long long getCurrentFrames();
 };
 
 # endif

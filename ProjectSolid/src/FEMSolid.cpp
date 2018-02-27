@@ -1,6 +1,7 @@
 # include "FEMSolid.h"
 
 void tetrahedralizeCube(tetgenio& out);
+void tetrahedralizeObj(std::string objPath, tetgenio& out);
 
 FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod)
 	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0)
@@ -98,6 +99,15 @@ FEMSolidSolver* FEMSolidSolver::createFromCube(fReal timeStep, fReal framePeriod
 	tetrahedralizeCube(cube);
 	FEMSolidSolver* solver = new FEMSolidSolver(cube, timeStep, framePeriod);
 	
+	return solver;
+}
+
+FEMSolidSolver* FEMSolidSolver::createFromObj(const std::string& filename, fReal timeStep, fReal framePeriod)
+{
+	tetgenio obj;
+	tetrahedralizeObj(filename, obj);
+	FEMSolidSolver* solver = new FEMSolidSolver(obj, timeStep, framePeriod);
+
 	return solver;
 }
 

@@ -24,18 +24,18 @@ void tetrahedralizeObj(std::string objPath, tetgenio& out)
 
 	tinyobj::shape_t& objShape = shapes[0];
 
-	in.numberofpoints = attribs.vertices.size();
+	in.numberofpoints = attribs.vertices.size() / 3;
 	in.pointlist = new REAL[in.numberofpoints * 3];
 # ifdef OMParallelize
 # pragma omp parallel for
+# endif
 	for (int pointInd = 0; pointInd < in.numberofpoints; ++pointInd)
 	{
 		in.pointlist[3 * pointInd + 0] = attribs.vertices.at(3 * pointInd + 0);
 		in.pointlist[3 * pointInd + 1] = attribs.vertices.at(3 * pointInd + 1);
 		in.pointlist[3 * pointInd + 2] = attribs.vertices.at(3 * pointInd + 2);
 	}
-# endif
-	
+
 	in.numberoffacets = objShape.mesh.num_face_vertices.size();
 	in.facetlist = new tetgenio::facet[in.numberoffacets];
 	in.facetmarkerlist = new int[in.numberoffacets];
@@ -54,7 +54,7 @@ void tetrahedralizeObj(std::string objPath, tetgenio& out)
 		for (int v = 0; v < p->numberofvertices; ++v)
 		{
 			tinyobj::index_t idx = objShape.mesh.indices[v + index_offset];
-			p->vertexlist[v] = idx.vertex_index;
+			p->vertexlist[v] = idx.vertex_index + 1;
 		}
 		index_offset += p->numberofvertices;
 	}

@@ -2,7 +2,7 @@
 # define FEMSolid_H
 
 # define TETLIBRARY
-
+# define TINYOBJLOADER_IMPLEMENTATION
 /// 如果不想要并行化代码就把这行注释掉
 # define OMParallelize
 
@@ -98,6 +98,8 @@ public:
 	long long getCurrentIterations();
 
 	long long getCurrentFrames();
+
+	~FEMSolidSolver();
 };
 
 # endif

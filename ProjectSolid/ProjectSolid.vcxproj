@@ -15,7 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FEMSolid.h" />
-    <ClInclude Include="include\poly.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FEMSolid.cpp" />

@@ -42,6 +42,21 @@ void FEMSolidSolver::preAllocate(int numOfTets, int numOfVerts)
 	this->masses = new fReal[numOfVerts];
 }
 
+FEMSolidSolver::~FEMSolidSolver()
+{
+	delete[] this->tetraIndices;
+	delete[] this->Dm;
+	delete[] this->Bm;
+	delete[] this->We;
+
+	delete[] this->positions;
+	delete[] this->velocities;
+	delete[] this->elasticForces;
+
+	delete[] this->bodyForces;
+	delete[] this->masses;
+}
+
 void FEMSolidSolver::preFill(tetgenio& mesh)
 {
 # ifdef OMParallelize

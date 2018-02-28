@@ -64,5 +64,5 @@ void tetrahedralizeObj(std::string objPath, tetgenio& out)
 		in.facetmarkerlist[facetInd] = 0;
 	}
 
-	tetrahedralize("pq1.414a0.1", &in, &out);
+	tetrahedralize("pdq1.414a0.1", &in, &out);
 }

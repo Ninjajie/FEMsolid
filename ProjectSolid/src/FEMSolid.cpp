@@ -1,13 +1,20 @@
 # include "FEMSolid.h"
 
 void tetrahedralizeCube(tetgenio& out);
+void tetrahedralizeObj(std::string objPath, tetgenio& out);
 
-FEMSolidSolver::FEMSolidSolver(fReal timeStep, fReal framePeriod)
-	: timeStep(timeStep), framePeriod(framePeriod), steps(0),sphereOrigin(1.0,3,-1),sphereVelocity(0,0,2), sphereMass(50), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
+
+FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod)
+	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0) , sphereOrigin(1.0,3,-1),sphereVelocity(0,0,2), sphereMass(50)
+
 {
 # ifdef OMParallelize
 	omp_set_num_threads(TOTALThreads);
 # endif
+	this->preAllocate(mesh.numberoftetrahedra, mesh.numberofpoints);
+	this->preFill(mesh);
+	this->setInitial();
+	this->preCompute();
 }
 
 long long FEMSolidSolver::getCurrentIterations()
@@ -15,49 +22,110 @@ long long FEMSolidSolver::getCurrentIterations()
 	return this->steps;
 }
 
+long long FEMSolidSolver::getCurrentFrames()
+{
+	return this->frames;
+}
+
+void FEMSolidSolver::preAllocate(int numOfTets, int numOfVerts)
+{
+	this->numOfTets = numOfTets;
+	this->numOfVerts = numOfVerts;
+
+	this->tetraIndices = new Eigen::Vector4i[numOfTets];
+	this->Dm = new mat3[numOfTets];
+	this->Bm = new mat3[numOfTets];
+	this->We = new fReal[numOfTets];
+	
+	this->positions = new vec3[numOfVerts];
+	this->velocities = new vec3[numOfVerts];
+	this->elasticForces = new vec3[numOfVerts];
+	
+	this->bodyForces = new vec3[numOfVerts];
+	this->masses = new fReal[numOfVerts];
+}
+
+FEMSolidSolver::~FEMSolidSolver()
+{
+	delete[] this->tetraIndices;
+	delete[] this->Dm;
+	delete[] this->Bm;
+	delete[] this->We;
+
+	delete[] this->positions;
+	delete[] this->velocities;
+	delete[] this->elasticForces;
+
+	delete[] this->bodyForces;
+	delete[] this->masses;
+}
+
+void FEMSolidSolver::preFill(tetgenio& mesh)
+{
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int i = 0; i < numOfTets; i++)
+	{
+		tetraIndices[i] = Eigen::Vector4i(mesh.tetrahedronlist[4 * i + 0] - 1,
+										  mesh.tetrahedronlist[4 * i + 1] - 1,
+										  mesh.tetrahedronlist[4 * i + 2] - 1,
+										  mesh.tetrahedronlist[4 * i + 3] - 1);
+	}
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int i = 0; i < numOfVerts; i++)
+	{
+		positions[i] = vec3(mesh.pointlist[3 * i + 0],
+							mesh.pointlist[3 * i + 1],
+							mesh.pointlist[3 * i + 2]);
+		
+	}
+}
+
+void FEMSolidSolver::setInitial()
+{
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int i = 0; i < numOfVerts; i++)
+	{
+		velocities[i] = zeroVec;
+	}
+}
+
 FEMSolidSolver* FEMSolidSolver::createFromCube(fReal timeStep, fReal framePeriod)
 {
 	tetgenio cube;
 	tetrahedralizeCube(cube);
+	FEMSolidSolver* solver = new FEMSolidSolver(cube, timeStep, framePeriod);
+	
+	return solver;
+}
 
-	FEMSolidSolver* solver = new FEMSolidSolver(timeStep, framePeriod);
-
-	for (int i = 0; i < cube.numberoftetrahedra; i++)
-	{
-		solver->tetraIndices.push_back(Eigen::Vector4i(cube.tetrahedronlist[4 * i + 0] - 1,
-													   cube.tetrahedronlist[4 * i + 1] - 1,
-													   cube.tetrahedronlist[4 * i + 2] - 1,
-													   cube.tetrahedronlist[4 * i + 3] - 1));
-	}
-
-	for (int i = 0; i < cube.numberofpoints; i++)
-	{
-		vec3 zeroVec = vec3(0.0, 0.0, 0.0);
-		solver->positions.push_back(vec3(cube.pointlist[3 * i + 0],
-													cube.pointlist[3 * i + 1],
-													cube.pointlist[3 * i + 2]));
-		solver->velocities.push_back(zeroVec);
-	}
-
-	solver->preCompute();
+FEMSolidSolver* FEMSolidSolver::createFromObj(const std::string& filename, fReal timeStep, fReal framePeriod)
+{
+	tetgenio obj;
+	tetrahedralizeObj(filename, obj);
+	FEMSolidSolver* solver = new FEMSolidSolver(obj, timeStep, framePeriod);
 
 	return solver;
 }
 
 void FEMSolidSolver::preCompute()
 {
-	Dm = std::vector<mat3>(tetraIndices.size());
-	Bm = std::vector<mat3>(tetraIndices.size());
-	We = std::vector<fReal>(tetraIndices.size());
-	masses = std::vector<fReal>(positions.size());
-	for (int i = 0; i < positions.size(); ++i)
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int i = 0; i < this->numOfVerts; ++i)
 	{
-		masses.at(i) = 0.0;
+		masses[i] = 0.0;
 	}
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
-	for (int i = 0; i < tetraIndices.size(); i++)
+	for (int i = 0; i < this->numOfTets; i++)
 	{
 		mat3 dmt;
 		vec3& lastCorner = positions[tetraIndices[i][3]];
@@ -68,14 +136,14 @@ void FEMSolidSolver::preCompute()
 			dmt.col(cornerInd) << corner[0] - lastCorner[0], corner[1] - lastCorner[1], corner[2] - lastCorner[2];
 		}
 
-		Dm.at(i) = dmt;
-		Bm.at(i) = dmt.inverse();
+		Dm[i] = dmt;
+		Bm[i] = dmt.inverse();
 		fReal volume = 1.0 / 6.0 * std::abs(dmt.determinant());
-		We.at(i) = volume;
+		We[i] = volume;
 		fReal tetMass = volume * Density;
 		for (int vert = 0; vert != 4; ++vert)
 		{
-			masses.at(tetraIndices[i][vert]) += 0.25 * tetMass;
+			masses[tetraIndices[i][vert]] += 0.25 * tetMass;
 		}
 	}
 }
@@ -113,12 +181,15 @@ mat3 FEMSolidSolver::computeP(mat3 dst)
 
 void FEMSolidSolver::computeBodyForce()
 {
-	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int pointInd = 0; pointInd < this->numOfVerts; ++pointInd)
 	{
-		bodyForces[pointInd] += vec3(0.0, -masses.at(pointInd) * GravityAcc, 0.0);
+		bodyForces[pointInd] += vec3(0.0, -masses[pointInd] * GravityAcc, 0.0);
 	}
 }
-void FEMSolidSolver::sphereBound(fReal idx, vec3 origin)
+void FEMSolidSolver::sphereBound(int idx, vec3 origin)
 {
 	
 	vec3 pq = (positions[idx] - origin);
@@ -136,13 +207,13 @@ void FEMSolidSolver::sphereBound(fReal idx, vec3 origin)
 }
 void FEMSolidSolver::stepForward()
 {
-	vec3 zeroVec = vec3(0.0, 0.0, 0.0);
-	bodyForces.clear();
-	elasticForces.clear();
-	for (size_t pointInd = 0; pointInd != positions.size(); ++pointInd)
+# ifdef OMParallelize
+# pragma omp parallel for
+# endif
+	for (int pointInd = 0; pointInd < this->numOfVerts; ++pointInd)
 	{
-		bodyForces.push_back(zeroVec);
-		elasticForces.push_back(zeroVec);
+		bodyForces[pointInd] = (zeroVec);
+		elasticForces[pointInd] = (zeroVec);
 	}
 
 	this->computeBodyForce();
@@ -154,18 +225,13 @@ void FEMSolidSolver::stepForward()
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
-	for (int pointInd = 0; pointInd < positions.size(); ++pointInd)
+	for (int pointInd = 0; pointInd < this->numOfVerts; ++pointInd)
 	{
 		this->sphereBound(pointInd,sphereOrigin);
 		vec3 totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
+		solveForBoundary(pointInd);
 		positions[pointInd] += this->timeStep * velocities[pointInd];
-
-		if (positions[pointInd][1] < -1.0)
-		{
-			positions[pointInd][1] = -1.0;
-			velocities[pointInd][1] = 0.0;
-		}
 	}
 
 	if (this->steps % this->stepsPerFrame == 0)
@@ -178,8 +244,23 @@ void FEMSolidSolver::stepForward()
 		path += ".poly";
 		this->save2filesSphere(sphereOrigin, 1, path1);
 		this->save2File(path);
+		this->frames++;
 	}
 	this->steps++;
+}
+
+void FEMSolidSolver::solveForBoundary(int pointInd)
+{
+	if (std::abs(positions[pointInd][2]) < 1e-3)
+	{
+		positions[pointInd][2] = 0.0;
+		velocities[pointInd] = zeroVec;
+	}
+	if (positions[pointInd][1] < -1.0)
+	{
+		positions[pointInd][1] = -1.0;
+		velocities[pointInd][1] = 0.0;
+	}
 }
 
 void FEMSolidSolver::save2File(std::string path)
@@ -188,14 +269,14 @@ void FEMSolidSolver::save2File(std::string path)
 	file.open(path, std::ios::out);
 	objwriter::ObjWriter w(file);
 	w.point();
-	for (int i = 0; i < positions.size(); i++)
+	for (int i = 0; i < this->numOfVerts; i++)
 	{
 		w.vertex(static_cast<fReal>(positions[i][0]),
 				 static_cast<fReal>(positions[i][1]),
 				 static_cast<fReal>(positions[i][2]), i);
 	}
 	w.polys();
-	for (int i = 0; i < tetraIndices.size(); i++)
+	for (int i = 0; i < this->numOfTets; i++)
 	{
 		w.tet(tetraIndices[i][0] + 1, tetraIndices[i][1] + 1, tetraIndices[i][2] + 1, tetraIndices[i][3] + 1, i);
 	}
@@ -241,7 +322,7 @@ void FEMSolidSolver::computeElasticForce()
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
-	for (int tetInd = 0; tetInd < tetraIndices.size(); tetInd++)
+	for (int tetInd = 0; tetInd < this->numOfTets; tetInd++)
 	{
 		mat3 dst;
 		vec3& lastCorner = positions[tetraIndices[tetInd][3]];
@@ -266,13 +347,19 @@ void FEMSolidSolver::computeElasticForce()
 		mat3 H = -We[tetInd] * P * (Bm[tetInd].transpose());
 
 		/// 注意！原版本存在初始化问题！
-		vec3 f3 = vec3(0.0, 0.0, 0.0);
+		vec3 f3 = zeroVec;
 		for (int cornerInd = 0; cornerInd < 3; cornerInd++)
 		{
-			elasticForces[tetraIndices[tetInd][cornerInd]] += H.col(cornerInd);
+# ifdef OMParallelize
+# pragma omp critical
+# endif
+			elasticForces[tetraIndices[tetInd][cornerInd]] = elasticForces[tetraIndices[tetInd][cornerInd]] + H.col(cornerInd);
 			f3 -= H.col(cornerInd);
 		}
 		/// 等等……啥？应该是+=
-		elasticForces[tetraIndices[tetInd][3]] += f3;
+# ifdef OMParallelize
+# pragma omp critical
+# endif
+		elasticForces[tetraIndices[tetInd][3]] = elasticForces[tetraIndices[tetInd][3]] + f3;
 	}
 }

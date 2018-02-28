@@ -20,9 +20,6 @@
     <ClInclude Include="include\FEMSolid.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\poly.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

@@ -37,7 +37,7 @@ typedef Eigen::Matrix3d mat3;
 typedef double fReal;
 # endif
 
-const fReal E = 2000;
+const fReal E = 80000;
 const fReal NU = 0.3;
 const fReal Density = 6.8;
 const vec3 zeroVec = vec3(0.0, 0.0, 0.0);
@@ -77,7 +77,7 @@ private:
 
 	void computeBodyForce();
 
-	void solveForBoundary();
+	void solveForBoundary(int pointInd);
 
 	void save2File(std::string path);
 

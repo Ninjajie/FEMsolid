@@ -209,9 +209,9 @@ void FEMSolidSolver::stepForward()
 	{
 		vec3 totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
+		solveForBoundary(pointInd);
 		positions[pointInd] += this->timeStep * velocities[pointInd];
 	}
-	solveForBoundary();
 
 	if (this->steps % this->stepsPerFrame == 0)
 	{
@@ -224,19 +224,18 @@ void FEMSolidSolver::stepForward()
 	this->steps++;
 }
 
-void FEMSolidSolver::solveForBoundary()
+void FEMSolidSolver::solveForBoundary(int pointInd)
 {
-# ifdef OMParallelize
-# pragma omp parallel for
-# endif
-	for (int pointInd = 0; pointInd < this->numOfVerts; ++pointInd)
+	if (std::abs(positions[pointInd][2]) < 1e-3)
 	{
-		if (positions[pointInd][1] < -1.0)
-		{
-			positions[pointInd][1] = -1.0;
-			velocities[pointInd][1] = 0.0;
-		}
+		positions[pointInd][2] = 0.0;
+		velocities[pointInd] = zeroVec;
 	}
+	/*if (positions[pointInd][1] < -1.0)
+	{
+		positions[pointInd][1] = -1.0;
+		velocities[pointInd][1] = 0.0;
+	}*/
 }
 
 void FEMSolidSolver::save2File(std::string path)

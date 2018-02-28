@@ -251,11 +251,11 @@ void FEMSolidSolver::stepForward()
 
 void FEMSolidSolver::solveForBoundary(int pointInd)
 {
-	if (std::abs(positions[pointInd][2]) < 1e-3)
-	{
-		positions[pointInd][2] = 0.0;
-		velocities[pointInd] = zeroVec;
-	}
+	//if (std::abs(positions[pointInd][2]) < 1e-3)
+	//{
+	//	positions[pointInd][2] = 0.0;
+	//	velocities[pointInd] = zeroVec;
+	//}
 	if (positions[pointInd][1] < -1.0)
 	{
 		positions[pointInd][1] = -1.0;

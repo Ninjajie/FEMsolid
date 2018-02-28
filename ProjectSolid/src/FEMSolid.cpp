@@ -3,7 +3,7 @@
 void tetrahedralizeCube(tetgenio& out);
 
 FEMSolidSolver::FEMSolidSolver(fReal timeStep, fReal framePeriod)
-	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
+	: timeStep(timeStep), framePeriod(framePeriod), steps(0),sphereOrigin(1.0,3,-1),sphereVelocity(0,0,2), sphereMass(50), stepsPerFrame(static_cast<long long>(framePeriod / timeStep))
 {
 # ifdef OMParallelize
 	omp_set_num_threads(TOTALThreads);
@@ -103,7 +103,7 @@ mat3 FEMSolidSolver::computeP(mat3 dst)
 	mat3 firstComponent = 2 * mu * (dst - R);
 
 	mat3 I = mat3::Identity(3, 3);
-	mat3 strainMeasurement = R * dst - I;
+	mat3 strainMeasurement = R.transpose() * dst - I;
 	mat3 secondComponent = (lambda * (strainMeasurement.trace())) * R;
 
 	mat3 P = firstComponent + secondComponent;
@@ -118,7 +118,22 @@ void FEMSolidSolver::computeBodyForce()
 		bodyForces[pointInd] += vec3(0.0, -masses.at(pointInd) * GravityAcc, 0.0);
 	}
 }
+void FEMSolidSolver::sphereBound(fReal idx, vec3 origin)
+{
+	
+	vec3 pq = (positions[idx] - origin);
+	fReal interValue = pq.norm();
+	if (interValue < 1)
+	{
+		vec3 po = positions[idx] - origin;
+		vec3 po1 = po/interValue;
+		vec3 p = origin + po1;
+		positions[idx] = p;	
+		sphereVelocity += masses[idx] * velocities[idx] / sphereMass;//sphere momentum transfer from jello
+		velocities[idx] =vec3( 0,0,0);
 
+	}
+}
 void FEMSolidSolver::stepForward()
 {
 	vec3 zeroVec = vec3(0.0, 0.0, 0.0);
@@ -132,12 +147,16 @@ void FEMSolidSolver::stepForward()
 
 	this->computeBodyForce();
 	this->computeElasticForce();
-
+//===========================sphere time integration==========
+	sphereOrigin += this->timeStep*sphereVelocity;
+	sphereVelocity[1] += -GravityAcc*timeStep;
+//===========================================
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
 	for (int pointInd = 0; pointInd < positions.size(); ++pointInd)
 	{
+		this->sphereBound(pointInd,sphereOrigin);
 		vec3 totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
 		positions[pointInd] += this->timeStep * velocities[pointInd];
@@ -151,9 +170,13 @@ void FEMSolidSolver::stepForward()
 
 	if (this->steps % this->stepsPerFrame == 0)
 	{
-		std::string path = "./resultcache/polyCube";
+		std::string path = "polyCube";
+		std::string path1 = "polySphere";
+		path1 += std::to_string(steps / stepsPerFrame);
 		path += std::to_string(steps / stepsPerFrame);
+		path1 += ".poly";
 		path += ".poly";
+		this->save2filesSphere(sphereOrigin, 1, path1);
 		this->save2File(path);
 	}
 	this->steps++;
@@ -179,7 +202,40 @@ void FEMSolidSolver::save2File(std::string path)
 	w.end();
 	file.close();
 }
+void FEMSolidSolver::save2filesSphere(vec3 o, fReal r, std::string path)
+{
+	std::fstream file;
+	file.open(path, std::ios::out);
+	objwriter::ObjWriter w(file);
+	w.point();
+	std::vector<vec3> sphere;
+	for (int i = 0; i <= 20; i++)
+	{
+		for (int j = 0; j <= 10; j++)
+		{
+			float phi = (PI / 10)*i;
+			float theta = (PI/ 10)*j;
+			sphere.push_back(vec3(r * cos(phi)*sin(theta) + o[0], r * sin(phi)*sin(theta) + o[1], r * cos(theta) + o[2]));
+		}
+	}
+	for (int i = 0; i <sphere.size(); i++)
+	{
+		w.vertex(static_cast<fReal>(sphere[i][0]),
+				 static_cast<fReal>(sphere[i][1]), 
+				 static_cast<fReal>(sphere[i][2]), i);
+	}
+	w.polys();
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j <= 10; j++)
+		{
 
+			w.line(i * 11 + j + 1, i * 11 + j + 2, (i * 11 + j) * 2 + 1);
+			w.line(i * 11 + j + 1, i * 11 + j + 12, (i * 11 + j) * 2 + 2);
+		}
+	}
+	w.end();
+}
 void FEMSolidSolver::computeElasticForce()
 {
 # ifdef OMParallelize

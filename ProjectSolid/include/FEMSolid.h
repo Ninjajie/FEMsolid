@@ -4,10 +4,10 @@
 # define TETLIBRARY
 
 /// 如果不想要并行化代码就把这行注释掉
-//# define OMParallelize
+# define OMParallelize
 
 # ifdef OMParallelize
-# define TOTALThreads 8
+# define TOTALThreads 16
 # endif
 
 # define GravityAcc 9.8
@@ -37,10 +37,10 @@ typedef Eigen::Matrix3d mat3;
 typedef double fReal;
 # endif
 
-const fReal E = 8000;
+const fReal E = 5000;
 const fReal NU = 0.3;
 const fReal Density = 6.8;
-
+const fReal PI = 3.1415926;
 class FEMSolidSolver
 {
 private:
@@ -56,6 +56,9 @@ private:
 	std::vector<vec3> velocities;
 	std::vector<vec3> elasticForces;
 	std::vector<vec3> bodyForces;
+	vec3 sphereOrigin;
+	vec3 sphereVelocity;
+	fReal sphereMass;
 	std::vector<fReal> masses;
 
 	std::vector<mat3> Dm;
@@ -70,6 +73,9 @@ private:
 
 	void save2File(std::string path);
 
+	void sphereBound(fReal idx, vec3 origin);
+
+	void save2filesSphere(vec3 o, fReal r, std::string path);
 public:
 	//以后把这个弄个虚函数就好了
 	virtual mat3 computeP(mat3 dst);

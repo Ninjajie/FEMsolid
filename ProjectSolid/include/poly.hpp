@@ -58,6 +58,12 @@ namespace objwriter
 				<< v3 << " "
 				<< v4 << std::endl;
 		}
+		void line(TIndex i1, TIndex i2, int idx)
+		{
+			m_file << std::to_string(idx) + ": "
+				<< i1 << " "
+				<< i2 << std::endl;
+		}
 		void texcoord(TVertex t1, TVertex t2)
 		{
 			m_file << "vt "

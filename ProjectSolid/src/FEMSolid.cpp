@@ -231,11 +231,11 @@ void FEMSolidSolver::solveForBoundary(int pointInd)
 		positions[pointInd][2] = 0.0;
 		velocities[pointInd] = zeroVec;
 	}
-	/*if (positions[pointInd][1] < -1.0)
+	if (positions[pointInd][1] < -1.0)
 	{
 		positions[pointInd][1] = -1.0;
 		velocities[pointInd][1] = 0.0;
-	}*/
+	}
 }
 
 void FEMSolidSolver::save2File(std::string path)

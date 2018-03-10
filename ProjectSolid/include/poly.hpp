@@ -50,6 +50,13 @@ namespace objwriter
 				<< v2 << " "
 				<< v3 << std::endl;
 		}
+		void vertex(TVertex v1, TVertex v2, TVertex v3)
+		{
+			m_file << "v "
+				<< v1 << " "
+				<< v2 << " "
+				<< v3 << std::endl;
+		}
 		void vertex(TVertex v1, TVertex v2, TVertex v3, TVertex v4)
 		{
 			m_file << "v "
@@ -119,6 +126,13 @@ namespace objwriter
 		void face(TIndex i1, TIndex i2, TIndex i3, int idx)
 		{
 			m_file << std::to_string(idx) + ": "
+				<< i1 << " "
+				<< i2 << " "
+				<< i3 << std::endl;
+		}
+		void face(TIndex i1, TIndex i2, TIndex i3)
+		{
+			m_file << "f "
 				<< i1 << " "
 				<< i2 << " "
 				<< i3 << std::endl;

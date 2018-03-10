@@ -77,7 +77,8 @@ private:
 
 	size_t numOfObjTriangles;
 	int* objTriangleIndices;
-	std::map<int, int> objVerticesTable;
+	std::map<int, int> tetIndex2ObjIndex;
+	std::map<int, int> objIndex2TetIndex;
 
 
 	void preAllocate(int numOfTets, int numOfVerts);

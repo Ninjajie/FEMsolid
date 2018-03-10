@@ -7,10 +7,9 @@ void tetrahedralizeObj(std::string objPath, tetgenio& out);
 
 
 FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod)
-	: timeStep(timeStep), framePeriod(framePeriod), steps(0), 
+	: timeStep(timeStep), framePeriod(framePeriod), steps(0),
 	stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0),
-	sphereOrigin(1.0,3,-1), sphereVelocity(0,0,2), sphereMass(50)
-
+	sphereOrigin(1.0, 3, -1), sphereVelocity(0, 0, 2), sphereMass(50)
 {
 	this->preAllocate(mesh.numberoftetrahedra, mesh.numberofpoints);
 	this->preFill(mesh);
@@ -19,15 +18,22 @@ FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod
 
 	this->numOfObjTriangles = mesh.numberoftrifaces;
 	this->objTriangleIndices = new int[3 * this->numOfObjTriangles];
-	
+
+	size_t objIndex = 1;
 	for (int i = 0; i < 3 * this->numOfObjTriangles; ++i)
 	{
-		int index = mesh.trifacelist[i];
-		objTriangleIndices[i] = index;
-		if (objVerticesTable.find(index) == objVerticesTable.end())
+		int tetIndex = mesh.trifacelist[i];
+		if (tetIndex2ObjIndex.find(tetIndex) == tetIndex2ObjIndex.end())
 		{
-			this->objVerticesTable.emplace(std::pair<int, int>(index, this->objVerticesTable.size()));
+			tetIndex2ObjIndex.emplace(std::pair<int, int>(tetIndex, objIndex));
+			objIndex2TetIndex.emplace(std::pair<int, int>(objIndex, tetIndex));
+			++objIndex;
 		}
+	}
+	for (int i = 0; i < 3 * this->numOfObjTriangles; ++i)
+	{
+		int tetIndex = mesh.trifacelist[i];
+		objTriangleIndices[i] = tetIndex2ObjIndex.at(tetIndex);
 	}
 }
 
@@ -205,6 +211,7 @@ void FEMSolidSolver::computeBodyForce()
 		bodyForces[pointInd] += vec3(0.0, -masses[pointInd] * GravityAcc, 0.0);
 	}
 }
+
 void FEMSolidSolver::sphereBound(int idx, vec3 origin)
 {
 	
@@ -221,6 +228,7 @@ void FEMSolidSolver::sphereBound(int idx, vec3 origin)
 
 	}
 }
+
 void FEMSolidSolver::stepForward()
 {
 # ifdef OMParallelize
@@ -252,14 +260,21 @@ void FEMSolidSolver::stepForward()
 
 	if (this->steps % this->stepsPerFrame == 0)
 	{
-		std::string path = "polyCube";
-		std::string path1 = "polySphere";
-		path1 += std::to_string(steps / stepsPerFrame);
-		path += std::to_string(steps / stepsPerFrame);
-		path1 += ".poly";
-		path += ".poly";
-		this->save2filesSphere(sphereOrigin, 1, path1);
-		this->save2Poly(path);
+		std::string pathPoly = "polyCube";
+		std::string pathSphere = "polySphere";
+		std::string pathObj = "objCube";
+
+		std::string suffix = std::to_string(this->frames) + ".poly";
+		std::string suffixObj = std::to_string(this->frames) + ".obj";
+
+		pathPoly += suffix;
+		pathSphere += suffix;
+		pathObj += suffixObj;
+
+		this->save2filesSphere(sphereOrigin, 1, pathSphere);
+		this->save2Poly(pathPoly);
+		this->save2Obj(pathObj);
+
 		this->frames++;
 	}
 	this->steps++;
@@ -305,6 +320,26 @@ void FEMSolidSolver::save2Obj(std::string path)
 	std::fstream file;
 	file.open(path, std::ios::out);
 	objwriter::ObjWriter w(file);
+
+	for (std::pair<const int, int>& pair : this->objIndex2TetIndex)
+	{
+		w.vertex
+		(
+			static_cast<fReal>(this->positions[pair.second - 1][0]),
+			static_cast<fReal>(this->positions[pair.second - 1][1]),
+			static_cast<fReal>(this->positions[pair.second - 1][2])
+		);
+	}
+
+	for (int i = 0; i < this->numOfObjTriangles; ++i)
+	{
+		w.face
+		(
+			this->objTriangleIndices[3 * i + 0],
+			this->objTriangleIndices[3 * i + 1],
+			this->objTriangleIndices[3 * i + 2]
+		);
+	}
 	
 	w.end();
 	file.close();

@@ -29,6 +29,28 @@ void tetrahedralizeCube(tetgenio& out)
 		in.pointlist[i * 3 + 1] = in.pointlist[(i - 4) * 3 + 1];
 		in.pointlist[i * 3 + 2] = 12;
 	}
+	// Add a rotation
+	fReal roll = 0.0;
+	fReal yaw = 0.0;
+	fReal pitch = 0.0;
+	Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitZ());
+	Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitY());
+	Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitX());
+	Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+	Eigen::Matrix3d rotationMatrix = q.matrix();
+
+	for (int i = 0; i < 8; ++i)
+	{
+		vec3 pointCoord = vec3(
+			in.pointlist[3 * i + 0],
+			in.pointlist[3 * i + 1],
+			in.pointlist[3 * i + 2]);
+		pointCoord = rotationMatrix * pointCoord;
+		in.pointlist[3 * i + 0] = pointCoord[0];
+		in.pointlist[3 * i + 1] = pointCoord[1];
+		in.pointlist[3 * i + 2] = pointCoord[2];
+	}
+
 	in.numberoffacets = 6;
 	in.facetlist = new tetgenio::facet[in.numberoffacets];
 	in.facetmarkerlist = new int[in.numberoffacets];

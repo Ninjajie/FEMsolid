@@ -39,7 +39,7 @@ typedef double fReal;
 # endif
 
 
-const fReal E = 5000;
+const fReal E = 120000;
 const fReal NU = 0.3;
 const fReal Density = 6.8;
 const fReal PI = 3.1415926;

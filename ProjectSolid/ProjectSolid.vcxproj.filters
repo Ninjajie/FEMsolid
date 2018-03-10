@@ -15,9 +15,15 @@
     <CudaCompile Include="kernel\Solver.cu">
       <Filter>kernel</Filter>
     </CudaCompile>
+    <CudaCompile Include="kernel\FEMSolidImplicit.cu">
+      <Filter>kernel</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FEMSolid.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FEMSolidImplicit.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

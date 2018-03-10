@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="kernel\FEMSolidImplicit.cu" />
     <CudaCompile Include="kernel\Solver.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FEMSolid.h" />
+    <ClInclude Include="include\FEMSolidImplicit.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FEMSolid.cpp" />

@@ -1,6 +1,8 @@
 # include "FEMSolid.h"
 # include <set>
 
+const fReal groundYCoord = -1.0;
+
 
 void tetrahedralizeCube(tetgenio& out);
 void tetrahedralizeObj(std::string objPath, tetgenio& out);
@@ -243,15 +245,15 @@ void FEMSolidSolver::stepForward()
 	this->computeBodyForce();
 	this->computeElasticForce();
 //===========================sphere time integration==========
-	sphereOrigin += this->timeStep*sphereVelocity;
-	sphereVelocity[1] += -GravityAcc*timeStep;
+	//sphereOrigin += this->timeStep*sphereVelocity;
+	//sphereVelocity[1] += -GravityAcc*timeStep;
 //===========================================
 # ifdef OMParallelize
 # pragma omp parallel for
 # endif
 	for (int pointInd = 0; pointInd < this->numOfVerts; ++pointInd)
 	{
-		this->sphereBound(pointInd,sphereOrigin);
+		//this->sphereBound(pointInd,sphereOrigin);
 		vec3 totalForce = bodyForces[pointInd] + elasticForces[pointInd];
 		velocities[pointInd] += this->timeStep * (totalForce * (1.0 / masses[pointInd]));
 		solveForBoundary(pointInd);
@@ -273,7 +275,7 @@ void FEMSolidSolver::stepForward()
 		pathSphereObj += suffixObj;
 
 		this->save2filesSphere(sphereOrigin, 1, pathSphere);
-		this->save2objSphere(sphereOrigin, 1, pathSphereObj);
+		//this->save2objSphere(sphereOrigin, 1, pathSphereObj);
 		this->save2Poly(pathPoly);
 		this->save2Obj(pathObj);
 
@@ -284,16 +286,16 @@ void FEMSolidSolver::stepForward()
 
 void FEMSolidSolver::solveForBoundary(int pointInd)
 {
-	//if (std::abs(positions[pointInd][2]) < 1e-3)
-	//{
-	//	positions[pointInd][2] = 0.0;
-	//	velocities[pointInd] = zeroVec;
-	//}
-	if (positions[pointInd][1] < -1.0)
+	if (std::abs(positions[pointInd][2]) < 1e-3)
 	{
-		positions[pointInd][1] = -1.0;
-		velocities[pointInd][1] = 0.0;
+		positions[pointInd][2] = 0.0;
+		velocities[pointInd] = zeroVec;
 	}
+	//if (positions[pointInd][1] < groundYCoord)
+	//{
+	//	positions[pointInd][1] = groundYCoord;
+	//	velocities[pointInd][1] = 0.0;
+	//}
 }
 
 void FEMSolidSolver::save2Poly(std::string path)

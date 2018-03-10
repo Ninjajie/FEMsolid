@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 	omp_set_num_threads(TOTALThreads);
 # endif
 
-	FEMSolidSolver* solver = FEMSolidSolver::createFromCube(0.001f, 0.01f);
+	FEMSolidSolver* solver = FEMSolidSolver::createFromCube(0.0001f, 0.01f);
 
 	//FEMSolidSolver* solver = FEMSolidSolver::createFromObj("cone.obj", 0.0001f, 0.01f);
 

@@ -330,14 +330,14 @@ void FEMSolidSolver::save2Obj(std::string path)
 			static_cast<fReal>(this->positions[pair.second - 1][2])
 		);
 	}
-
+	// 似乎tetgen是左手系来的？
 	for (int i = 0; i < this->numOfObjTriangles; ++i)
 	{
 		w.face
 		(
-			this->objTriangleIndices[3 * i + 0],
+			this->objTriangleIndices[3 * i + 2],
 			this->objTriangleIndices[3 * i + 1],
-			this->objTriangleIndices[3 * i + 2]
+			this->objTriangleIndices[3 * i + 0]
 		);
 	}
 	

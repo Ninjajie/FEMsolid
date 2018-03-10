@@ -101,6 +101,7 @@ private:
 
 	void sphereBound(int idx, vec3 origin);
 
+	void save2objSphere(vec3 o, fReal r, std::string path);
 	void save2filesSphere(vec3 o, fReal r, std::string path);
 
 	FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod);

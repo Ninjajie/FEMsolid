@@ -263,15 +263,17 @@ void FEMSolidSolver::stepForward()
 		std::string pathPoly = "polyCube";
 		std::string pathSphere = "polySphere";
 		std::string pathObj = "objCube";
-
+		std::string pathSphereObj = "objSphere";
 		std::string suffix = std::to_string(this->frames) + ".poly";
 		std::string suffixObj = std::to_string(this->frames) + ".obj";
 
 		pathPoly += suffix;
 		pathSphere += suffix;
 		pathObj += suffixObj;
+		pathSphereObj += suffixObj;
 
 		this->save2filesSphere(sphereOrigin, 1, pathSphere);
+		this->save2objSphere(sphereOrigin, 1, pathSphereObj);
 		this->save2Poly(pathPoly);
 		this->save2Obj(pathObj);
 
@@ -379,7 +381,40 @@ void FEMSolidSolver::save2filesSphere(vec3 o, fReal r, std::string path)
 	}
 	w.end();
 }
+void FEMSolidSolver::save2objSphere(vec3 o, fReal r, std::string path)
+{
+	std::fstream file;
+	file.open(path, std::ios::out);
+	objwriter::ObjWriter w(file);
+	std::vector<vec3> sphere;
+	for (int i = 0; i <= 20; i++)
+	{
+		for (int j = 0; j <= 10; j++)
+		{
+			float phi = (PI / 10)*i;
+			float theta = (PI / 10)*j;
+			sphere.push_back(vec3(r * cos(phi)*sin(theta) + o[0], r * sin(phi)*sin(theta) + o[1], r * cos(theta) + o[2]));
+		}
+	}
+	for (int i = 0; i < sphere.size(); i++)
+	{
+		w.vertex(static_cast<fReal>(sphere[i][0]),
+			static_cast<fReal>(sphere[i][1]),
+			static_cast<fReal>(sphere[i][2]));
+	}
+	
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j <= 10; j++)
+		{
 
+			w.face(i * 11 + j + 1, i * 11 + j + 2, i * 11 + j + 12);
+			w.face(i * 11 + j + 2, i * 11 + j + 13, i * 11 + j + 12);
+		}
+	}
+	w.end();
+	file.close();
+}
 void FEMSolidSolver::computeElasticForce()
 {
 # ifdef OMParallelize

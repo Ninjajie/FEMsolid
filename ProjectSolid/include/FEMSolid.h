@@ -20,6 +20,7 @@
 # include <tetgen.h>
 # include <array>
 # include <vector>
+# include <map>
 # include <poly.hpp>
 # include <omp.h>
 
@@ -51,10 +52,10 @@ class FEMSolidSolver
 private:
 	fReal timeStep;
 	fReal framePeriod;
-
 	long long steps;
 	long long stepsPerFrame;
 	long long frames;
+
 
 	Eigen::Vector4i* tetraIndices;
 	mat3* Dm;
@@ -72,6 +73,11 @@ private:
 	vec3 sphereVelocity;
 	fReal sphereMass;
 	size_t numOfVerts;
+
+
+	size_t numOfObjTriangles;
+	int* objTriangleIndices;
+	std::map<int, int> objVerticesTable;
 
 
 	void preAllocate(int numOfTets, int numOfVerts);

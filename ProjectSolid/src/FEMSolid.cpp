@@ -1,17 +1,34 @@
 # include "FEMSolid.h"
+# include <set>
+
 
 void tetrahedralizeCube(tetgenio& out);
 void tetrahedralizeObj(std::string objPath, tetgenio& out);
 
 
 FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod)
-	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0) , sphereOrigin(1.0,3,-1),sphereVelocity(0,0,2), sphereMass(50)
+	: timeStep(timeStep), framePeriod(framePeriod), steps(0), 
+	stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0),
+	sphereOrigin(1.0,3,-1), sphereVelocity(0,0,2), sphereMass(50)
 
 {
 	this->preAllocate(mesh.numberoftetrahedra, mesh.numberofpoints);
 	this->preFill(mesh);
 	this->setInitial();
 	this->preCompute();
+
+	this->numOfObjTriangles = mesh.numberoftrifaces;
+	this->objTriangleIndices = new int[3 * this->numOfObjTriangles];
+	
+	for (int i = 0; i < 3 * this->numOfObjTriangles; ++i)
+	{
+		int index = mesh.trifacelist[i];
+		objTriangleIndices[i] = index;
+		if (objVerticesTable.find(index) == objVerticesTable.end())
+		{
+			this->objVerticesTable.emplace(std::pair<int, int>(index, this->objVerticesTable.size()));
+		}
+	}
 }
 
 long long FEMSolidSolver::getCurrentIterations()
@@ -55,6 +72,8 @@ FEMSolidSolver::~FEMSolidSolver()
 
 	delete[] this->bodyForces;
 	delete[] this->masses;
+
+	delete[] this->objTriangleIndices;
 }
 
 void FEMSolidSolver::preFill(tetgenio& mesh)

@@ -88,8 +88,9 @@ private:
 
 	void solveForBoundary(int pointInd);
 
-	void save2File(std::string path);
+	void save2Poly(std::string path);
 
+	void save2Obj(std::string path);
 
 	void sphereBound(int idx, vec3 origin);
 

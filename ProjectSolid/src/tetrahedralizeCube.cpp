@@ -119,12 +119,12 @@ void tetrahedralizeCube(tetgenio& out)
 
 	// Set 'in.facetmarkerlist'
 
-	in.facetmarkerlist[0] = -1;
-	in.facetmarkerlist[1] = -2;
-	in.facetmarkerlist[2] = 0;
-	in.facetmarkerlist[3] = 0;
-	in.facetmarkerlist[4] = 0;
-	in.facetmarkerlist[5] = 0;
+	in.facetmarkerlist[0] = 1;
+	in.facetmarkerlist[1] = 2;
+	in.facetmarkerlist[2] = 3;
+	in.facetmarkerlist[3] = 4;
+	in.facetmarkerlist[4] = 5;
+	in.facetmarkerlist[5] = 6;
 
 	tetrahedralize("pq1.414a0.1", &in, &out);
 }

@@ -8,9 +8,6 @@ FEMSolidSolver::FEMSolidSolver(tetgenio& mesh, fReal timeStep, fReal framePeriod
 	: timeStep(timeStep), framePeriod(framePeriod), steps(0), stepsPerFrame(static_cast<long long>(framePeriod / timeStep)), frames(0) , sphereOrigin(1.0,3,-1),sphereVelocity(0,0,2), sphereMass(50)
 
 {
-# ifdef OMParallelize
-	omp_set_num_threads(TOTALThreads);
-# endif
 	this->preAllocate(mesh.numberoftetrahedra, mesh.numberofpoints);
 	this->preFill(mesh);
 	this->setInitial();
@@ -243,7 +240,7 @@ void FEMSolidSolver::stepForward()
 		path1 += ".poly";
 		path += ".poly";
 		this->save2filesSphere(sphereOrigin, 1, path1);
-		this->save2File(path);
+		this->save2Poly(path);
 		this->frames++;
 	}
 	this->steps++;
@@ -263,7 +260,7 @@ void FEMSolidSolver::solveForBoundary(int pointInd)
 	}
 }
 
-void FEMSolidSolver::save2File(std::string path)
+void FEMSolidSolver::save2Poly(std::string path)
 {
 	std::fstream file;
 	file.open(path, std::ios::out);
@@ -283,6 +280,17 @@ void FEMSolidSolver::save2File(std::string path)
 	w.end();
 	file.close();
 }
+
+void FEMSolidSolver::save2Obj(std::string path)
+{
+	std::fstream file;
+	file.open(path, std::ios::out);
+	objwriter::ObjWriter w(file);
+	
+	w.end();
+	file.close();
+}
+
 void FEMSolidSolver::save2filesSphere(vec3 o, fReal r, std::string path)
 {
 	std::fstream file;
@@ -317,6 +325,7 @@ void FEMSolidSolver::save2filesSphere(vec3 o, fReal r, std::string path)
 	}
 	w.end();
 }
+
 void FEMSolidSolver::computeElasticForce()
 {
 # ifdef OMParallelize
